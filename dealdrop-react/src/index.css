@@ -1580,6 +1580,9 @@ label {
 .profile-info h2 { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
 .profile-info p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
 
+.claimed-box { background: rgba(16, 185, 129, 0.1); border: 1px dashed #10b981; border-radius: var(--radius-md); padding: 16px; text-align: center; }
+.claim-code { font-family: monospace; font-size: 1.5rem; font-weight: bold; color: var(--text-primary); letter-spacing: 2px; margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; }
+
 /* ══════════════════════════════════════════════
    RESPONSIVE
    ══════════════════════════════════════════════ */

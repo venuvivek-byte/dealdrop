@@ -78,8 +78,15 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isReta
         <span className="deal-price">₹{deal.dealPrice}</span>
         <span className="discount-tag">{deal.discount}% OFF</span>
       </div>
-      <div className={`countdown ${urgency.isUrgent ? 'urgent' : ''}`} style={{ marginBottom: isRetailer ? 16 : 0 }}>
-        {isExpired ? '❌ Expired' : `⏳ ${timeLeft} left`}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isRetailer ? 16 : 0 }}>
+        <div className={`countdown ${urgency.isUrgent ? 'urgent' : ''}`}>
+          {isExpired ? '❌ Expired' : `⏳ ${timeLeft} left`}
+        </div>
+        {isRetailer && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.85rem', color: '#10b981', fontWeight: 600 }}>
+            🎟️ {deal.claims || 0} Claims
+          </div>
+        )}
       </div>
 
       {isRetailer && (

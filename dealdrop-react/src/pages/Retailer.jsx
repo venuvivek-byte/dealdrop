@@ -155,6 +155,7 @@ export default function Retailer({ user }) {
           createdAt: Timestamp.now(),
           expiresAt: Timestamp.fromDate(expiresAt),
           views: 0,
+          claims: 0,
         });
       }
       setForm({ productName: '', originalPrice: '', dealPrice: '', category: 'Groceries', expiresIn: '1', shopAddress: '' });
@@ -210,6 +211,7 @@ export default function Retailer({ user }) {
   const active = deals.filter(d => d.expiresAt?.toDate() > now);
   const expired = deals.filter(d => d.expiresAt?.toDate() <= now);
   const totalViews = deals.reduce((acc, curr) => acc + (curr.views || 0), 0);
+  const totalClaims = deals.reduce((acc, curr) => acc + (curr.claims || 0), 0);
   const bestDiscount = deals.length > 0 ? Math.max(...deals.map(d => d.discount)) : 0;
 
   // ── AUTH VIEW ──
@@ -291,8 +293,8 @@ export default function Retailer({ user }) {
       <StatsBar stats={[
         { value: active.length, label: 'Active Deals' },
         { value: deals.length, label: 'Total Posted' },
-        { value: expired.length, label: 'Expired' },
         { value: totalViews, label: 'Total Views' },
+        { value: totalClaims, label: 'Total Claims' },
       ]} />
 
       <div className="retailer-profile-card fade-in-up">

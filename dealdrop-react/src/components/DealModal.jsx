@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { getTimeLeft, getUrgencyBadge, categoryIcons } from '../utils';
-import { X, MapPin, Navigation, Clock, Share2, Heart } from 'lucide-react';
+import { X, MapPin, Navigation, Clock, Share2, Heart, CheckCircle } from 'lucide-react';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export default function DealModal({ deal, onClose }) {
   const [timeLeft, setTimeLeft] = useState('');
   const [isFav, setIsFav] = useState(false);
+  const [claimedCode, setClaimedCode] = useState(null);
+  const [isClaiming, setIsClaiming] = useState(false);
 
   useEffect(() => {
     if (!deal) return;
@@ -18,6 +22,9 @@ export default function DealModal({ deal, onClose }) {
     if (!deal) return;
     const favs = JSON.parse(localStorage.getItem('dealdrop_favs') || '[]');
     setIsFav(favs.includes(deal.id));
+
+    const claims = JSON.parse(localStorage.getItem('dealdrop_claims') || '{}');
+    setClaimedCode(claims[deal.id] || null);
   }, [deal?.id]);
 
   if (!deal) return null;
@@ -45,6 +52,39 @@ export default function DealModal({ deal, onClose }) {
     } else {
       navigator.clipboard.writeText(text);
       alert('Deal copied to clipboard!');
+    }
+  };
+
+  const generateClaimCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `DRP-${code}`;
+  };
+
+  const handleClaim = async () => {
+    if (claimedCode || isClaiming || timeLeft === 'Expired') return;
+    setIsClaiming(true);
+
+    const newCode = generateClaimCode();
+    
+    try {
+      // Increment claims in Firestore
+      await updateDoc(doc(db, 'deals', deal.id), { claims: increment(1) });
+      
+      // Save code locally
+      const claims = JSON.parse(localStorage.getItem('dealdrop_claims') || '{}');
+      claims[deal.id] = newCode;
+      localStorage.setItem('dealdrop_claims', JSON.stringify(claims));
+      
+      setClaimedCode(newCode);
+    } catch (e) {
+      console.error('Error claiming deal:', e);
+      alert('Failed to claim deal. Please try again.');
+    } finally {
+      setIsClaiming(false);
     }
   };
 
@@ -93,19 +133,40 @@ export default function DealModal({ deal, onClose }) {
             />
           </div>
 
-          <div className="modal-actions">
-            <button className="primary" onClick={openDirections}>
-              <Navigation size={16} />
-              Get Directions
-            </button>
-            <button className="secondary" onClick={toggleFav}>
-              <Heart size={16} fill={isFav ? '#f43f5e' : 'none'} color={isFav ? '#f43f5e' : 'currentColor'} />
-              {isFav ? 'Saved' : 'Save'}
-            </button>
-            <button className="secondary" onClick={shareDeal}>
-              <Share2 size={16} />
-              Share
-            </button>
+          <div className="modal-actions" style={{ flexDirection: 'column' }}>
+            {!claimedCode ? (
+              <button 
+                className="primary claim-btn" 
+                onClick={handleClaim} 
+                disabled={isClaiming || timeLeft === 'Expired'}
+                style={{ width: '100%', fontSize: '1.05rem', padding: '16px', fontWeight: 'bold' }}
+              >
+                {isClaiming ? '⏳ Claiming...' : '🎟️ Claim Deal Now'}
+              </button>
+            ) : (
+              <div className="claimed-box" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#10b981', fontWeight: 600, marginBottom: 4 }}>
+                  <CheckCircle size={18} /> Deal Claimed!
+                </div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Show this code at the store:</div>
+                <div className="claim-code">{claimedCode}</div>
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+              <button className="secondary" onClick={openDirections} style={{ flex: 1, padding: '12px 8px', fontSize: '0.9rem' }}>
+                <Navigation size={16} />
+                Directions
+              </button>
+              <button className="secondary" onClick={toggleFav} style={{ flex: 1, padding: '12px 8px', fontSize: '0.9rem' }}>
+                <Heart size={16} fill={isFav ? '#f43f5e' : 'none'} color={isFav ? '#f43f5e' : 'currentColor'} />
+                {isFav ? 'Saved' : 'Save'}
+              </button>
+              <button className="secondary" onClick={shareDeal} style={{ flex: 1, padding: '12px 8px', fontSize: '0.9rem' }}>
+                <Share2 size={16} />
+                Share
+              </button>
+            </div>
           </div>
         </div>
       </div>
