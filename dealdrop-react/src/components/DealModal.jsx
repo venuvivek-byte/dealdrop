@@ -6,11 +6,6 @@ export default function DealModal({ deal, onClose }) {
   const [timeLeft, setTimeLeft] = useState('');
   const [isFav, setIsFav] = useState(false);
 
-  if (!deal) return null;
-
-  const expiryDate = deal.expiresAt.toDate();
-  const urgency = getUrgencyBadge(expiryDate);
-
   useEffect(() => {
     if (!deal) return;
     const update = () => setTimeLeft(getTimeLeft(deal.expiresAt.toDate()));
@@ -20,9 +15,15 @@ export default function DealModal({ deal, onClose }) {
   }, [deal]);
 
   useEffect(() => {
+    if (!deal) return;
     const favs = JSON.parse(localStorage.getItem('dealdrop_favs') || '[]');
     setIsFav(favs.includes(deal.id));
-  }, [deal.id]);
+  }, [deal?.id]);
+
+  if (!deal) return null;
+
+  const expiryDate = deal.expiresAt.toDate();
+  const urgency = getUrgencyBadge(expiryDate);
 
   const toggleFav = () => {
     const favs = JSON.parse(localStorage.getItem('dealdrop_favs') || '[]');

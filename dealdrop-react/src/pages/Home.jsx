@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { collection, query, where, onSnapshot, Timestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 import { MapPin, Zap, Target, ArrowRight, DollarSign, Clock, Map, CheckCircle } from 'lucide-react';
 import StatsBar from '../components/StatsBar';
@@ -7,6 +7,7 @@ import SearchBar from '../components/SearchBar';
 import MapView from '../components/MapView';
 import DealCard from '../components/DealCard';
 import DealModal from '../components/DealModal';
+import NotificationToast from '../components/NotificationToast';
 import Footer from '../components/Footer';
 
 export default function Home() {
@@ -17,6 +18,10 @@ export default function Home() {
   const [sortBy, setSortBy] = useState('newest');
   const [flyTo, setFlyTo] = useState(null);
   const [selectedDeal, setSelectedDeal] = useState(null);
+  const [quickFilter, setQuickFilter] = useState('');
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [toastDeal, setToastDeal] = useState(null);
+  const prevDealIds = useRef(new Set());
 
   // Fetch deals
   useEffect(() => {
@@ -29,6 +34,16 @@ export default function Home() {
 
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // Detect new deals for toast notification
+      if (prevDealIds.current.size > 0) {
+        const newDeals = data.filter(d => !prevDealIds.current.has(d.id));
+        if (newDeals.length > 0) {
+          setToastDeal(newDeals[0]);
+        }
+      }
+      prevDealIds.current = new Set(data.map(d => d.id));
+      
       setDeals(data);
       setLoading(false);
     });
@@ -42,7 +57,24 @@ export default function Home() {
       const matchSearch = d.productName.toLowerCase().includes(search.toLowerCase()) ||
                           d.shopName.toLowerCase().includes(search.toLowerCase());
       const matchCat = category === 'All' || d.category === category;
-      return matchSearch && matchCat;
+      
+      // Price range filter
+      const minPrice = priceRange.min ? parseFloat(priceRange.min) : 0;
+      const maxPrice = priceRange.max ? parseFloat(priceRange.max) : Infinity;
+      const matchPrice = d.dealPrice >= minPrice && d.dealPrice <= maxPrice;
+
+      // Quick filters
+      let matchQuick = true;
+      if (quickFilter === 'ending-soon') {
+        const hoursLeft = (d.expiresAt.toDate() - new Date()) / 3600000;
+        matchQuick = hoursLeft > 0 && hoursLeft <= 1;
+      } else if (quickFilter === 'big-discount') {
+        matchQuick = d.discount >= 50;
+      } else if (quickFilter === 'under-100') {
+        matchQuick = d.dealPrice < 100;
+      }
+
+      return matchSearch && matchCat && matchPrice && matchQuick;
     });
 
     switch (sortBy) {
@@ -62,20 +94,28 @@ export default function Home() {
         result.sort((a, b) => b.createdAt?.toDate() - a.createdAt?.toDate());
     }
     return result;
-  }, [deals, search, category, sortBy]);
+  }, [deals, search, category, sortBy, priceRange, quickFilter]);
 
   // Stats
   const stats = useMemo(() => {
     const shops = new Set(deals.map(d => d.shopName));
     const best = deals.length > 0 ? Math.max(...deals.map(d => d.discount)) : 0;
-    const itemsSaved = deals.length * 5; // Mock data for demo
+    const itemsSaved = deals.length * 5;
     return [
       { value: deals.length, label: 'Active Deals' },
       { value: shops.size, label: 'Local Retailers' },
       { value: itemsSaved, label: 'Items Saved Today' },
-      { value: best + '%', label: 'Avg Discount %' },
+      { value: best + '%', label: 'Best Discount' },
     ];
   }, [deals]);
+
+  const handleOpenDeal = async (deal) => {
+    setSelectedDeal(deal);
+    if (!deal) return;
+    try {
+      await updateDoc(doc(db, 'deals', deal.id), { views: increment(1) });
+    } catch(e) { console.error('Error incrementing views', e); }
+  };
 
   const handleFlyTo = (lat, lng) => {
     setFlyTo([lat, lng]);
@@ -166,6 +206,8 @@ export default function Home() {
             search={search} setSearch={setSearch}
             category={category} setCategory={setCategory}
             sortBy={sortBy} setSortBy={setSortBy}
+            priceRange={priceRange} setPriceRange={setPriceRange}
+            quickFilter={quickFilter} setQuickFilter={setQuickFilter}
           />
 
           <div className="deal-grid">
@@ -193,7 +235,7 @@ export default function Home() {
                   deal={deal}
                   index={i}
                   onFlyTo={handleFlyTo}
-                  onOpenModal={setSelectedDeal}
+                  onOpenModal={handleOpenDeal}
                 />
               ))
             )}
@@ -255,6 +297,11 @@ export default function Home() {
       
       <Footer />
       <DealModal deal={selectedDeal} onClose={() => setSelectedDeal(null)} />
+      <NotificationToast
+        deal={toastDeal}
+        onClose={() => setToastDeal(null)}
+        onView={(deal) => handleOpenDeal(deal)}
+      />
     </div>
   );
 }

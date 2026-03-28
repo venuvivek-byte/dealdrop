@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { getTimeLeft, getUrgencyBadge, categoryIcons } from '../utils';
 import { Heart } from 'lucide-react';
 
-export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal }) {
+export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isRetailer, onDelete, onExtend, onEdit }) {
   const [timeLeft, setTimeLeft] = useState('');
   const [isFav, setIsFav] = useState(false);
 
-  const expiryDate = deal.expiresAt.toDate();
+  const expiryDate = deal.expiresAt?.toDate ? deal.expiresAt.toDate() : new Date();
   const urgency = getUrgencyBadge(expiryDate);
 
   // Live countdown
@@ -20,9 +20,10 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal }) {
 
   // Favorites from localStorage
   useEffect(() => {
+    if (isRetailer) return;
     const favs = JSON.parse(localStorage.getItem('dealdrop_favs') || '[]');
     setIsFav(favs.includes(deal.id));
-  }, [deal.id]);
+  }, [deal.id, isRetailer]);
 
   const toggleFav = (e) => {
     e.stopPropagation();
@@ -42,20 +43,26 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal }) {
   return (
     <div
       className={`card fade-in-up ${isExpired ? 'expired' : ''}`}
-      style={{ animationDelay: `${index * 0.06}s`, cursor: 'pointer' }}
-      onClick={() => onOpenModal ? onOpenModal(deal) : onFlyTo?.(deal.lat, deal.lng)}
+      style={{ animationDelay: `${index * 0.06}s`, cursor: isRetailer ? 'default' : 'pointer' }}
+      onClick={() => {
+        if (!isRetailer) {
+          onOpenModal ? onOpenModal(deal) : onFlyTo?.(deal.lat, deal.lng);
+        }
+      }}
     >
-      <button
-        className="fav-btn"
-        onClick={toggleFav}
-        title={isFav ? 'Remove from favorites' : 'Add to favorites'}
-      >
-        <Heart
-          size={18}
-          fill={isFav ? '#f43f5e' : 'none'}
-          color={isFav ? '#f43f5e' : '#5c5c75'}
-        />
-      </button>
+      {!isRetailer && (
+        <button
+          className="fav-btn"
+          onClick={toggleFav}
+          title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Heart
+            size={18}
+            fill={isFav ? '#f43f5e' : 'none'}
+            color={isFav ? '#f43f5e' : '#5c5c75'}
+          />
+        </button>
+      )}
 
       <div className="badge-row">
         <span className="badge badge-category">
@@ -71,9 +78,25 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal }) {
         <span className="deal-price">₹{deal.dealPrice}</span>
         <span className="discount-tag">{deal.discount}% OFF</span>
       </div>
-      <div className={`countdown ${urgency.isUrgent ? 'urgent' : ''}`}>
+      <div className={`countdown ${urgency.isUrgent ? 'urgent' : ''}`} style={{ marginBottom: isRetailer ? 16 : 0 }}>
         {isExpired ? '❌ Expired' : `⏳ ${timeLeft} left`}
       </div>
+
+      {isRetailer && (
+        <div className="retailer-actions" style={{ display: 'flex', gap: 8, marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 16 }}>
+          <button className="secondary" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem' }} onClick={(e) => { e.stopPropagation(); onEdit?.(deal); }}>
+            Edit
+          </button>
+          {!isExpired && (
+            <button className="primary" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem' }} onClick={(e) => { e.stopPropagation(); onExtend?.(deal); }}>
+              +1 Hr
+            </button>
+          )}
+          <button className="danger" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem', background: '#f43f5e', color: '#fff', border: 'none' }} onClick={(e) => { e.stopPropagation(); onDelete?.(deal); }}>
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 }
