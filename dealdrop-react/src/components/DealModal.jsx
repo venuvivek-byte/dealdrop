@@ -12,11 +12,12 @@ export default function DealModal({ deal, onClose }) {
   const urgency = getUrgencyBadge(expiryDate);
 
   useEffect(() => {
-    const update = () => setTimeLeft(getTimeLeft(expiryDate));
+    if (!deal) return;
+    const update = () => setTimeLeft(getTimeLeft(deal.expiresAt.toDate()));
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [deal.id]);
+  }, [deal]);
 
   useEffect(() => {
     const favs = JSON.parse(localStorage.getItem('dealdrop_favs') || '[]');

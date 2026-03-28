@@ -11,11 +11,12 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal }) {
 
   // Live countdown
   useEffect(() => {
-    const update = () => setTimeLeft(getTimeLeft(expiryDate));
+    if (!deal) return;
+    const update = () => setTimeLeft(getTimeLeft(deal.expiresAt.toDate()));
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [deal]);
 
   // Favorites from localStorage
   useEffect(() => {
