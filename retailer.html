@@ -10,38 +10,49 @@
 <body>
 
 <nav>
-  <h1>🏷️ DealDrop</h1>
+  <h1>
+    <span class="logo-icon">🏷️</span>
+    DealDrop
+  </h1>
   <div class="nav-links">
-    <a href="index.html">← Customer View</a>
-    <a href="#" id="logoutBtn" style="display:none;" class="btn-primary">Logout</a>
+    <a href="index.html">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      Customer View
+    </a>
+    <a href="#" id="logoutBtn" style="display:none;" class="btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </a>
   </div>
 </nav>
 
 <!-- ── AUTH SECTION ── -->
 <div id="authSection">
-  <div class="auth-box">
+  <div class="auth-box fade-in-scale">
     <h2>Retailer Portal</h2>
+    <p class="auth-subtitle">Post deals & reach nearby customers instantly</p>
+
     <div id="loginForm">
-      <label>Email</label>
+      <label>Email Address</label>
       <input type="email" id="loginEmail" placeholder="you@shop.com" />
       <label>Password</label>
       <input type="password" id="loginPassword" placeholder="••••••••" />
-      <button onclick="login()">Login →</button>
-      <p class="msg">No account? <a onclick="toggleAuth()">Sign up here</a></p>
+      <button onclick="login()">Sign In →</button>
+      <p class="msg">New here? <a onclick="toggleAuth()">Create an account</a></p>
     </div>
 
     <div id="signupForm" style="display:none;">
       <label>Shop Name</label>
       <input type="text" id="shopName" placeholder="e.g. Fresh Mart" />
-      <label>Email</label>
+      <label>Email Address</label>
       <input type="email" id="signupEmail" placeholder="you@shop.com" />
       <label>Password</label>
-      <input type="password" id="signupPassword" placeholder="min 6 characters" />
+      <input type="password" id="signupPassword" placeholder="Min 6 characters" />
       <button onclick="signup()">Create Account →</button>
-      <p class="msg">Have an account? <a onclick="toggleAuth()">Login</a></p>
+      <p class="msg">Already have an account? <a onclick="toggleAuth()">Sign in</a></p>
     </div>
 
-    <p id="authError" style="color:#ff6b6b; text-align:center; margin-top:14px; font-size:0.9rem;"></p>
+    <p id="authError" style="color:#f43f5e; text-align:center; margin-top:14px; font-size:0.88rem; font-weight:500; position:relative; z-index:1;"></p>
   </div>
 </div>
 
@@ -49,7 +60,7 @@
 <div id="dashboard" style="display:none;">
   <div class="container">
 
-    <!-- Stats Bar -->
+    <!-- Stats -->
     <div class="stats-bar fade-in-up">
       <div class="stat-item">
         <div class="stat-value" id="myActiveDeals">0</div>
@@ -65,25 +76,25 @@
       </div>
     </div>
 
-    <!-- Post a Deal -->
-    <div class="card fade-in-up stagger-1">
-      <h3 style="font-family:'Outfit',sans-serif; font-size:1.3rem; margin-bottom:4px;">➕ Post a New Deal</h3>
-      <p style="color:var(--text-muted); margin-bottom:20px; font-size:0.85rem;">Fill in the details below to create a flash deal for nearby customers</p>
+    <!-- Post Deal Form -->
+    <div class="form-card fade-in-up stagger-1">
+      <h3>➕ Post a New Deal</h3>
+      <p class="subtitle">Create a flash deal to attract nearby customers</p>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 16px;">
-        <div style="grid-column:1/-1;">
+      <div class="form-grid">
+        <div class="full-width">
           <label>Product Name</label>
-          <input type="text" id="productName" placeholder="e.g. Fresh Apples" />
+          <input type="text" id="productName" placeholder="e.g. Fresh Organic Apples" />
         </div>
 
         <div>
           <label>Original Price (₹)</label>
-          <input type="number" id="originalPrice" placeholder="e.g. 100" />
+          <input type="number" id="originalPrice" placeholder="e.g. 200" />
         </div>
 
         <div>
           <label>Discounted Price (₹)</label>
-          <input type="number" id="dealPrice" placeholder="e.g. 60" />
+          <input type="number" id="dealPrice" placeholder="e.g. 100" />
         </div>
 
         <div>
@@ -99,7 +110,7 @@
         </div>
 
         <div>
-          <label>Deal Expires In</label>
+          <label>Deal Duration</label>
           <select id="expiresIn">
             <option value="1">⏱️ 1 Hour</option>
             <option value="2">⏱️ 2 Hours</option>
@@ -109,28 +120,30 @@
           </select>
         </div>
 
-        <div style="grid-column:1/-1;">
-          <label>Shop Address (for map pin)</label>
-          <input type="text" id="shopAddress" placeholder="e.g. 12 Anna Nagar, Chennai" />
+        <div class="full-width">
+          <label>Shop Location</label>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <input type="text" id="shopAddress" placeholder="e.g. 12 Anna Nagar, Chennai" style="flex:1;" />
+            <button type="button" onclick="useCurrentLocation()" class="secondary" style="white-space:nowrap; margin-top:8px; padding:12px 18px;" id="gpsBtn">
+              📍 Use GPS
+            </button>
+          </div>
+          <p id="locationStatus" style="font-size:0.8rem; color:var(--accent-light); margin-top:-12px; margin-bottom:14px; display:none; position:relative; z-index:1;"></p>
         </div>
       </div>
 
-      <button onclick="postDeal()" class="primary" style="width:100%; margin-top:8px;">
+      <button onclick="postDeal()" class="primary" style="width:100%; margin-top:8px; padding:15px; font-size:0.95rem; position:relative; z-index:1;">
         🚀 Post Deal
       </button>
     </div>
 
-    <!-- My Active Deals -->
-    <p class="section-title fade-in-up stagger-2">
-      📦 My Deals
+    <!-- My Deals -->
+    <div class="section-title fade-in-up stagger-2">
+      <span class="icon">📦</span> My Deals
       <span class="count" id="myDealCount">0</span>
-    </p>
+    </div>
     <div id="myDeals" class="deal-grid">
-      <div class="skeleton-card">
-        <div class="skeleton skeleton-line short"></div>
-        <div class="skeleton skeleton-line long"></div>
-        <div class="skeleton skeleton-line medium"></div>
-      </div>
+      <div class="skeleton-card"><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line medium"></div></div>
     </div>
 
   </div>
@@ -138,7 +151,6 @@
 
 <div id="toast"></div>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
@@ -162,6 +174,11 @@
 
   let currentUser = null;
 
+  // ── Navbar scroll ──
+  window.addEventListener('scroll', () => {
+    document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 10);
+  });
+
   // ── AUTH STATE ──
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -178,7 +195,7 @@
     }
   });
 
-  // ── TOGGLE LOGIN/SIGNUP ──
+  // ── TOGGLE AUTH ──
   window.toggleAuth = () => {
     const lf = document.getElementById('loginForm');
     const sf = document.getElementById('signupForm');
@@ -192,12 +209,10 @@
     const shopName = document.getElementById('shopName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
     const password = document.getElementById('signupPassword').value;
-
     if (!shopName || !email || !password) {
       document.getElementById('authError').textContent = 'Please fill all fields.';
       return;
     }
-
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       localStorage.setItem('shopName', shopName);
@@ -211,12 +226,10 @@
   window.login = async () => {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-
     if (!email || !password) {
       document.getElementById('authError').textContent = 'Please fill all fields.';
       return;
     }
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
       showToast('Welcome back! 👋');
@@ -230,6 +243,62 @@
     e.preventDefault();
     signOut(auth);
     showToast('Logged out successfully');
+  });
+
+  // ── USE CURRENT LOCATION ──
+  window._gpsLat = null;
+  window._gpsLng = null;
+
+  window.useCurrentLocation = () => {
+    const btn = document.getElementById('gpsBtn');
+    const statusEl = document.getElementById('locationStatus');
+
+    if (!navigator.geolocation) {
+      showToast('❌ Geolocation not supported');
+      return;
+    }
+
+    btn.innerHTML = '⏳ Detecting...';
+    btn.disabled = true;
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'Detecting your location...';
+    statusEl.style.color = 'var(--accent-light)';
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        window._gpsLat = pos.coords.latitude;
+        window._gpsLng = pos.coords.longitude;
+
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+          const data = await res.json();
+          document.getElementById('shopAddress').value = data.display_name || `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+        } catch (e) {
+          document.getElementById('shopAddress').value = `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+        }
+
+        statusEl.textContent = `✅ GPS location detected (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+        statusEl.style.color = '#34d399';
+        btn.innerHTML = '✅ Located';
+        btn.disabled = false;
+        showToast('📍 Location detected!');
+      },
+      () => {
+        btn.innerHTML = '📍 Use GPS';
+        btn.disabled = false;
+        statusEl.textContent = '❌ Could not detect location. Allow location access and try again.';
+        statusEl.style.color = '#f43f5e';
+        showToast('❌ Location access denied');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  document.getElementById('shopAddress').addEventListener('input', () => {
+    window._gpsLat = null;
+    window._gpsLng = null;
+    document.getElementById('locationStatus').style.display = 'none';
+    document.getElementById('gpsBtn').innerHTML = '📍 Use GPS';
   });
 
   // ── POST DEAL ──
@@ -247,59 +316,59 @@
       showToast('⚠️ Please fill all fields!');
       return;
     }
-
     if (dealPrice >= originalPrice) {
-      showToast('⚠️ Deal price must be less than original price!');
+      showToast('⚠️ Deal price must be less than original!');
       return;
     }
 
-    // Show loading state
     btn.disabled = true;
-    btn.innerHTML = '⏳ Posting...';
+    btn.innerHTML = '⏳ Posting deal...';
 
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
-    // Geocode address
-    let lat = 13.0827;
-    let lng = 80.2707;
-    try {
-      const geoRes = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(shopAddress)}`
-      );
-      const geoData = await geoRes.json();
-      if (geoData.length > 0) {
-        lat = parseFloat(geoData[0].lat);
-        lng = parseFloat(geoData[0].lon);
+    let lat = window._gpsLat || null;
+    let lng = window._gpsLng || null;
+
+    if (!lat || !lng) {
+      lat = 13.0827; lng = 80.2707;
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(shopAddress)}&countrycodes=in&limit=1`);
+        const geoData = await geoRes.json();
+        if (geoData.length > 0) {
+          lat = parseFloat(geoData[0].lat);
+          lng = parseFloat(geoData[0].lon);
+        } else {
+          showToast('⚠️ Address not found. Try "Use GPS" instead.');
+          btn.disabled = false;
+          btn.innerHTML = '🚀 Post Deal';
+          return;
+        }
+      } catch (e) {
+        console.log('Geocoding failed');
       }
-    } catch (e) {
-      console.log('Geocoding failed, using default location');
     }
 
     try {
       await addDoc(collection(db, 'deals'), {
-        productName,
-        originalPrice,
-        dealPrice,
+        productName, originalPrice, dealPrice,
         discount: Math.round(((originalPrice - dealPrice) / originalPrice) * 100),
-        category,
-        shopName,
-        shopAddress,
-        lat,
-        lng,
+        category, shopName, shopAddress, lat, lng,
         retailerId: currentUser.uid,
         createdAt: Timestamp.now(),
         expiresAt: Timestamp.fromDate(expiresAt),
         active: true
       });
-
       showToast('Deal posted successfully! 🚀');
       ['productName','originalPrice','dealPrice','shopAddress'].forEach(id => {
         document.getElementById(id).value = '';
       });
-
+      window._gpsLat = null;
+      window._gpsLng = null;
+      document.getElementById('locationStatus').style.display = 'none';
+      document.getElementById('gpsBtn').innerHTML = '📍 Use GPS';
     } catch (e) {
-      showToast('❌ Error posting deal. Try again.');
+      showToast('❌ Error posting deal');
       console.error(e);
     } finally {
       btn.disabled = false;
@@ -307,12 +376,9 @@
     }
   };
 
-  // ── LOAD MY DEALS ──
+  // ── MY DEALS ──
   function loadMyDeals() {
-    const q = query(
-      collection(db, 'deals'),
-      where('retailerId', '==', currentUser.uid)
-    );
+    const q = query(collection(db, 'deals'), where('retailerId', '==', currentUser.uid));
 
     onSnapshot(q, (snapshot) => {
       const container = document.getElementById('myDeals');
@@ -321,38 +387,32 @@
           <div class="empty-state" style="grid-column:1/-1;">
             <div class="icon">📦</div>
             <p>No deals posted yet.</p>
-            <p style="font-size:0.85rem;margin-top:8px;color:var(--text-muted);">Post your first deal above to get started!</p>
-          </div>
-        `;
-        document.getElementById('myDealCount').textContent = 0;
-        document.getElementById('myActiveDeals').textContent = 0;
-        document.getElementById('myTotalDeals').textContent = 0;
-        document.getElementById('myExpiredDeals').textContent = 0;
+            <p class="sub">Post your first deal above to get started!</p>
+          </div>`;
+        ['myDealCount','myActiveDeals','myTotalDeals','myExpiredDeals'].forEach(id => {
+          document.getElementById(id).textContent = 0;
+        });
         return;
       }
 
       container.innerHTML = '';
       const now = new Date();
-      let activeCount = 0;
-      let expiredCount = 0;
+      let activeCount = 0, expiredCount = 0;
 
       snapshot.forEach(doc => {
         const d = doc.data();
         const expiry = d.expiresAt.toDate();
         const isExpired = expiry < now;
-        const timeLeft = getTimeLeft(expiry);
-
-        if (isExpired) expiredCount++;
-        else activeCount++;
+        isExpired ? expiredCount++ : activeCount++;
 
         const card = document.createElement('div');
         card.className = `card ${isExpired ? 'expired' : ''} fade-in-up`;
         card.innerHTML = `
           <div class="badge-row">
             <span class="badge badge-category">${d.category}</span>
-            ${isExpired 
-              ? '<span class="badge" style="background:rgba(255,255,255,0.1);color:var(--text-muted);border:1px solid rgba(255,255,255,0.1);">Expired</span>' 
-              : '<span class="badge badge-active">Active</span>'}
+            ${isExpired
+              ? '<span class="badge" style="background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid rgba(255,255,255,0.08);">Expired</span>'
+              : '<span class="badge badge-active">✅ Active</span>'}
           </div>
           <h3>${d.productName}</h3>
           <p>🏪 ${d.shopName}</p>
@@ -362,7 +422,7 @@
             <span class="deal-price">₹${d.dealPrice}</span>
             <span class="discount-tag">${d.discount}% OFF</span>
           </div>
-          ${!isExpired ? `<div class="countdown" data-expiry="${expiry.toISOString()}">⏳ ${timeLeft} left</div>` : ''}
+          ${!isExpired ? `<div class="countdown" data-expiry="${expiry.toISOString()}">⏳ ${getTimeLeft(expiry)} left</div>` : ''}
         `;
         container.appendChild(card);
       });
@@ -374,16 +434,12 @@
     });
   }
 
-  // ── LIVE COUNTDOWN TIMER ──
+  // ── LIVE TIMERS ──
   setInterval(() => {
     document.querySelectorAll('.countdown[data-expiry]').forEach(el => {
       const expiry = new Date(el.dataset.expiry);
-      const timeLeft = getTimeLeft(expiry);
-      if (timeLeft === 'Expired') {
-        el.innerHTML = '❌ Expired';
-      } else {
-        el.innerHTML = `⏳ ${timeLeft} left`;
-      }
+      const tl = getTimeLeft(expiry);
+      el.innerHTML = tl === 'Expired' ? '❌ Expired' : `⏳ ${tl} left`;
     });
   }, 1000);
 
@@ -400,10 +456,10 @@
   }
 
   function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 3000);
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
   }
 </script>
 
