@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DealDrop – Retailer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <h1>🏷️ DealDrop</h1>
+  <div>
+    <a href="index.html">Customer View</a>
+    <a href="#" id="logoutBtn" style="display:none;">Logout</a>
+  </div>
+</nav>
+
+<!-- ── AUTH SECTION ── -->
+<div id="authSection">
+  <div class="auth-box">
+    <h2>Retailer Login</h2>
+    <div id="loginForm">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="you@shop.com" />
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" />
+      <button onclick="login()">Login</button>
+      <p class="msg">No account? <a onclick="toggleAuth()">Sign up here</a></p>
+    </div>
+
+    <div id="signupForm" style="display:none;">
+      <label>Shop Name</label>
+      <input type="text" id="shopName" placeholder="e.g. Fresh Mart" />
+      <label>Email</label>
+      <input type="email" id="signupEmail" placeholder="you@shop.com" />
+      <label>Password</label>
+      <input type="password" id="signupPassword" placeholder="min 6 characters" />
+      <button onclick="signup()">Create Account</button>
+      <p class="msg">Have an account? <a onclick="toggleAuth()">Login</a></p>
+    </div>
+
+    <p id="authError" style="color:red; text-align:center; margin-top:10px;"></p>
+  </div>
+</div>
+
+<!-- ── RETAILER DASHBOARD ── -->
+<div id="dashboard" style="display:none;">
+  <div class="container">
+
+    <!-- Post a Deal -->
+    <div class="card">
+      <h3>➕ Post a New Deal</h3>
+      <br/>
+      <label>Product Name</label>
+      <input type="text" id="productName" placeholder="e.g. Fresh Apples" />
+
+      <label>Original Price (₹)</label>
+      <input type="number" id="originalPrice" placeholder="e.g. 100" />
+
+      <label>Discounted Price (₹)</label>
+      <input type="number" id="dealPrice" placeholder="e.g. 60" />
+
+      <label>Category</label>
+      <select id="category">
+        <option value="Groceries">Groceries</option>
+        <option value="Bakery">Bakery</option>
+        <option value="Dairy">Dairy</option>
+        <option value="Electronics">Electronics</option>
+        <option value="Clothing">Clothing</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label>Deal Expires In</label>
+      <select id="expiresIn">
+        <option value="1">1 Hour</option>
+        <option value="2">2 Hours</option>
+        <option value="4">4 Hours</option>
+        <option value="8">8 Hours</option>
+        <option value="24">24 Hours</option>
+      </select>
+
+      <label>Shop Address (for map pin)</label>
+      <input type="text" id="shopAddress" placeholder="e.g. 12 Anna Nagar, Chennai" />
+
+      <button onclick="postDeal()">🚀 Post Deal</button>
+    </div>
+
+    <!-- My Active Deals -->
+    <p class="section-title">📦 My Active Deals</p>
+    <div id="myDeals" class="deal-grid">
+      <p style="color:#888;">Loading your deals...</p>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, query, where, onSnapshot, Timestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // 🔴 REPLACE THIS WITH YOUR FIREBASE CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEWiFeBiiXflPa7ADL6ijQ7NcMubIZScQ",
+    authDomain: "dealdrop-16ea7.firebaseapp.com",
+    projectId: "dealdrop-16ea7",
+    storageBucket: "dealdrop-16ea7.firebasestorage.app",
+    messagingSenderId: "482243986322",
+    appId: "1:482243986322:web:7f74b0dcfa5cf5222fb74b",
+    measurementId: "G-TTK180DJD5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+
+  // ── AUTH STATE ──
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('logoutBtn').style.display = 'inline';
+      loadMyDeals();
+    } else {
+      currentUser = null;
+      document.getElementById('authSection').style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+    }
+  });
+
+  // ── TOGGLE LOGIN/SIGNUP ──
+  window.toggleAuth = () => {
+    const lf = document.getElementById('loginForm');
+    const sf = document.getElementById('signupForm');
+    lf.style.display = lf.style.display === 'none' ? 'block' : 'none';
+    sf.style.display = sf.style.display === 'none' ? 'block' : 'none';
+  };
+
+  // ── SIGNUP ──
+  window.signup = async () => {
+    const shopName = document.getElementById('shopName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      localStorage.setItem('shopName', shopName);
+      showToast('Account created! Welcome to DealDrop 🎉');
+    } catch (e) {
+      document.getElementById('authError').textContent = e.message;
+    }
+  };
+
+  // ── LOGIN ──
+  window.login = async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      showToast('Welcome back! 👋');
+    } catch (e) {
+      document.getElementById('authError').textContent = 'Invalid email or password.';
+    }
+  };
+
+  // ── LOGOUT ──
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    signOut(auth);
+  });
+
+  // ── POST DEAL ──
+  window.postDeal = async () => {
+    const productName = document.getElementById('productName').value.trim();
+    const originalPrice = parseFloat(document.getElementById('originalPrice').value);
+    const dealPrice = parseFloat(document.getElementById('dealPrice').value);
+    const category = document.getElementById('category').value;
+    const expiresInHours = parseInt(document.getElementById('expiresIn').value);
+    const shopAddress = document.getElementById('shopAddress').value.trim();
+    const shopName = localStorage.getItem('shopName') || 'My Shop';
+
+    if (!productName || !originalPrice || !dealPrice || !shopAddress) {
+      showToast('Please fill all fields!');
+      return;
+    }
+
+    if (dealPrice >= originalPrice) {
+      showToast('Deal price must be less than original price!');
+      return;
+    }
+
+    // Calculate expiry time
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + expiresInHours);
+
+    // Geocode address using free API
+    let lat = 13.0827; // default: Chennai
+    let lng = 80.2707;
+    try {
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(shopAddress)}`
+      );
+      const geoData = await geoRes.json();
+      if (geoData.length > 0) {
+        lat = parseFloat(geoData[0].lat);
+        lng = parseFloat(geoData[0].lon);
+      }
+    } catch (e) {
+      console.log('Geocoding failed, using default location');
+    }
+
+    try {
+      await addDoc(collection(db, 'deals'), {
+        productName,
+        originalPrice,
+        dealPrice,
+        discount: Math.round(((originalPrice - dealPrice) / originalPrice) * 100),
+        category,
+        shopName,
+        shopAddress,
+        lat,
+        lng,
+        retailerId: currentUser.uid,
+        createdAt: Timestamp.now(),
+        expiresAt: Timestamp.fromDate(expiresAt),
+        active: true
+      });
+
+      showToast('Deal posted successfully! 🚀');
+      // Clear form
+      ['productName','originalPrice','dealPrice','shopAddress'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+
+    } catch (e) {
+      showToast('Error posting deal. Try again.');
+      console.error(e);
+    }
+  };
+
+  // ── LOAD MY DEALS ──
+  function loadMyDeals() {
+    const q = query(
+      collection(db, 'deals'),
+      where('retailerId', '==', currentUser.uid)
+    );
+
+    onSnapshot(q, (snapshot) => {
+      const container = document.getElementById('myDeals');
+      if (snapshot.empty) {
+        container.innerHTML = '<p style="color:#888;">No deals posted yet. Post your first deal above!</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      const now = new Date();
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const expiry = d.expiresAt.toDate();
+        const isExpired = expiry < now;
+        const timeLeft = getTimeLeft(expiry);
+
+        container.innerHTML += `
+          <div class="card ${isExpired ? 'expired' : ''}">
+            <span class="badge">${d.category}</span>
+            ${isExpired ? '<span class="badge" style="background:#aaa; margin-left:6px;">Expired</span>' : '<span class="badge green" style="margin-left:6px;">Active</span>'}
+            <h3>${d.productName}</h3>
+            <p>🏪 ${d.shopName}</p>
+            <p>📍 ${d.shopAddress}</p>
+            <p>💰 <s>₹${d.originalPrice}</s> → <b>₹${d.dealPrice}</b> (${d.discount}% off)</p>
+            ${!isExpired ? `<p class="countdown">⏳ Expires in: ${timeLeft}</p>` : ''}
+          </div>
+        `;
+      });
+    });
+  }
+
+  // ── HELPERS ──
+  function getTimeLeft(expiryDate) {
+    const diff = expiryDate - new Date();
+    if (diff <= 0) return 'Expired';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return `${h}h ${m}m`;
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3000);
+  }
+</script>
+
+</body>
+</html>

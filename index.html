@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DealDrop – Find Deals Near You</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+<nav>
+  <h1>🏷️ DealDrop</h1>
+  <div>
+    <a href="retailer.html">I'm a Retailer →</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Search & Filter Bar -->
+  <div class="card" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+    <div style="flex:1; min-width:180px;">
+      <input type="text" id="searchInput" placeholder="🔍 Search deals..." style="margin:0;" oninput="filterDeals()" />
+    </div>
+    <select id="categoryFilter" onchange="filterDeals()" style="margin:0; width:auto;">
+      <option value="All">All Categories</option>
+      <option value="Groceries">Groceries</option>
+      <option value="Bakery">Bakery</option>
+      <option value="Dairy">Dairy</option>
+      <option value="Electronics">Electronics</option>
+      <option value="Clothing">Clothing</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+
+  <!-- Map -->
+  <p class="section-title">🗺️ Deals Near You</p>
+  <div id="map"></div>
+
+  <!-- Deal Cards -->
+  <p class="section-title">🔥 Active Flash Deals</p>
+  <div id="dealList" class="deal-grid">
+    <p style="color:#888;">Loading deals...</p>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, query, where, onSnapshot, Timestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // 🔴 REPLACE THIS WITH YOUR FIREBASE CONFIG (same as retailer.html)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEWiFeBiiXflPa7ADL6ijQ7NcMubIZScQ",
+    authDomain: "dealdrop-16ea7.firebaseapp.com",
+    projectId: "dealdrop-16ea7",
+    storageBucket: "dealdrop-16ea7.firebasestorage.app",
+    messagingSenderId: "482243986322",
+    appId: "1:482243986322:web:7f74b0dcfa5cf5222fb74b",
+    measurementId: "G-TTK180DJD5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── MAP SETUP ──
+  const map = L.map('map').setView([13.0827, 80.2707], 13); // Default: Chennai
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Try to get user's real location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      map.setView([pos.coords.latitude, pos.coords.longitude], 13);
+      L.marker([pos.coords.latitude, pos.coords.longitude])
+        .addTo(map)
+        .bindPopup('📍 You are here')
+        .openPopup();
+    });
+  }
+
+  let allDeals = [];
+  const markers = [];
+
+  // ── LOAD DEALS FROM FIREBASE ──
+  const now = Timestamp.now();
+  const q = query(
+    collection(db, 'deals'),
+    where('active', '==', true),
+    where('expiresAt', '>', now)
+  );
+
+  onSnapshot(q, (snapshot) => {
+    allDeals = [];
+    // Clear old markers
+    markers.forEach(m => map.removeLayer(m));
+    markers.length = 0;
+
+    snapshot.forEach(doc => {
+      const d = { id: doc.id, ...doc.data() };
+      allDeals.push(d);
+
+      // Add map pin
+      const marker = L.marker([d.lat, d.lng])
+        .addTo(map)
+        .bindPopup(`
+          <b>${d.productName}</b><br/>
+          🏪 ${d.shopName}<br/>
+          💰 ₹${d.dealPrice} <s style="color:#aaa;">₹${d.originalPrice}</s><br/>
+          <b style="color:red;">${d.discount}% OFF</b><br/>
+          ⏳ ${getTimeLeft(d.expiresAt.toDate())}
+        `);
+      markers.push(marker);
+    });
+
+    renderDeals(allDeals);
+  });
+
+  // ── RENDER DEAL CARDS ──
+  window.renderDeals = function(deals) {
+    const container = document.getElementById('dealList');
+
+    if (deals.length === 0) {
+      container.innerHTML = '<p style="color:#888;">No active deals found in your area right now.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    deals.forEach(d => {
+      const timeLeft = getTimeLeft(d.expiresAt.toDate());
+      const urgency = getUrgencyBadge(d.expiresAt.toDate());
+
+      container.innerHTML += `
+        <div class="card" onclick="flyTo(${d.lat}, ${d.lng})" style="cursor:pointer;">
+          <span class="badge">${d.category}</span>
+          <span class="badge ${urgency.class}" style="margin-left:6px;">${urgency.label}</span>
+          <h3>${d.productName}</h3>
+          <p>🏪 ${d.shopName}</p>
+          <p>📍 ${d.shopAddress}</p>
+          <p>💰 <s>₹${d.originalPrice}</s> → <b style="color:#ff4757; font-size:1.1rem;">₹${d.dealPrice}</b></p>
+          <p><b style="color:#2ed573;">${d.discount}% OFF</b></p>
+          <p class="countdown">⏳ ${timeLeft} left</p>
+        </div>
+      `;
+    });
+  };
+
+  // ── FLY TO LOCATION ON MAP ──
+  window.flyTo = function(lat, lng) {
+    map.flyTo([lat, lng], 16);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ── FILTER DEALS ──
+  window.filterDeals = function() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+
+    const filtered = allDeals.filter(d => {
+      const matchSearch = d.productName.toLowerCase().includes(search) ||
+                          d.shopName.toLowerCase().includes(search);
+      const matchCategory = category === 'All' || d.category === category;
+      return matchSearch && matchCategory;
+    });
+
+    renderDeals(filtered);
+  };
+
+  // ── HELPERS ──
+  function getTimeLeft(expiryDate) {
+    const diff = expiryDate - new Date();
+    if (diff <= 0) return 'Expired';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    if (h === 0) return `${m} mins`;
+    return `${h}h ${m}m`;
+  }
+
+  function getUrgencyBadge(expiryDate) {
+    const diff = expiryDate - new Date();
+    const hours = diff / 3600000;
+    if (hours < 1) return { class: '', label: '🔥 Ending Soon!' };
+    if (hours < 3) return { class: 'orange', label: '⚡ Hot Deal' };
+    return { class: 'green', label: '✅ Active' };
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3000);
+  }
+</script>
+
+</body>
+</html>
