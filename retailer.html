@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DealDrop – Retailer</title>
+  <title>DealDrop – Retailer Dashboard</title>
+  <meta name="description" content="Post flash deals for your shop and reach nearby customers instantly with DealDrop.">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <nav>
   <h1>🏷️ DealDrop</h1>
-  <div>
-    <a href="index.html">Customer View</a>
-    <a href="#" id="logoutBtn" style="display:none;">Logout</a>
+  <div class="nav-links">
+    <a href="index.html">← Customer View</a>
+    <a href="#" id="logoutBtn" style="display:none;" class="btn-primary">Logout</a>
   </div>
 </nav>
 
 <!-- ── AUTH SECTION ── -->
 <div id="authSection">
   <div class="auth-box">
-    <h2>Retailer Login</h2>
+    <h2>Retailer Portal</h2>
     <div id="loginForm">
       <label>Email</label>
       <input type="email" id="loginEmail" placeholder="you@shop.com" />
       <label>Password</label>
       <input type="password" id="loginPassword" placeholder="••••••••" />
-      <button onclick="login()">Login</button>
+      <button onclick="login()">Login →</button>
       <p class="msg">No account? <a onclick="toggleAuth()">Sign up here</a></p>
     </div>
 
@@ -36,11 +37,11 @@
       <input type="email" id="signupEmail" placeholder="you@shop.com" />
       <label>Password</label>
       <input type="password" id="signupPassword" placeholder="min 6 characters" />
-      <button onclick="signup()">Create Account</button>
+      <button onclick="signup()">Create Account →</button>
       <p class="msg">Have an account? <a onclick="toggleAuth()">Login</a></p>
     </div>
 
-    <p id="authError" style="color:red; text-align:center; margin-top:10px;"></p>
+    <p id="authError" style="color:#ff6b6b; text-align:center; margin-top:14px; font-size:0.9rem;"></p>
   </div>
 </div>
 
@@ -48,48 +49,88 @@
 <div id="dashboard" style="display:none;">
   <div class="container">
 
+    <!-- Stats Bar -->
+    <div class="stats-bar fade-in-up">
+      <div class="stat-item">
+        <div class="stat-value" id="myActiveDeals">0</div>
+        <div class="stat-label">Active Deals</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="myTotalDeals">0</div>
+        <div class="stat-label">Total Posted</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="myExpiredDeals">0</div>
+        <div class="stat-label">Expired</div>
+      </div>
+    </div>
+
     <!-- Post a Deal -->
-    <div class="card">
-      <h3>➕ Post a New Deal</h3>
-      <br/>
-      <label>Product Name</label>
-      <input type="text" id="productName" placeholder="e.g. Fresh Apples" />
+    <div class="card fade-in-up stagger-1">
+      <h3 style="font-family:'Outfit',sans-serif; font-size:1.3rem; margin-bottom:4px;">➕ Post a New Deal</h3>
+      <p style="color:var(--text-muted); margin-bottom:20px; font-size:0.85rem;">Fill in the details below to create a flash deal for nearby customers</p>
 
-      <label>Original Price (₹)</label>
-      <input type="number" id="originalPrice" placeholder="e.g. 100" />
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 16px;">
+        <div style="grid-column:1/-1;">
+          <label>Product Name</label>
+          <input type="text" id="productName" placeholder="e.g. Fresh Apples" />
+        </div>
 
-      <label>Discounted Price (₹)</label>
-      <input type="number" id="dealPrice" placeholder="e.g. 60" />
+        <div>
+          <label>Original Price (₹)</label>
+          <input type="number" id="originalPrice" placeholder="e.g. 100" />
+        </div>
 
-      <label>Category</label>
-      <select id="category">
-        <option value="Groceries">Groceries</option>
-        <option value="Bakery">Bakery</option>
-        <option value="Dairy">Dairy</option>
-        <option value="Electronics">Electronics</option>
-        <option value="Clothing">Clothing</option>
-        <option value="Other">Other</option>
-      </select>
+        <div>
+          <label>Discounted Price (₹)</label>
+          <input type="number" id="dealPrice" placeholder="e.g. 60" />
+        </div>
 
-      <label>Deal Expires In</label>
-      <select id="expiresIn">
-        <option value="1">1 Hour</option>
-        <option value="2">2 Hours</option>
-        <option value="4">4 Hours</option>
-        <option value="8">8 Hours</option>
-        <option value="24">24 Hours</option>
-      </select>
+        <div>
+          <label>Category</label>
+          <select id="category">
+            <option value="Groceries">🥬 Groceries</option>
+            <option value="Bakery">🍞 Bakery</option>
+            <option value="Dairy">🥛 Dairy</option>
+            <option value="Electronics">📱 Electronics</option>
+            <option value="Clothing">👕 Clothing</option>
+            <option value="Other">📦 Other</option>
+          </select>
+        </div>
 
-      <label>Shop Address (for map pin)</label>
-      <input type="text" id="shopAddress" placeholder="e.g. 12 Anna Nagar, Chennai" />
+        <div>
+          <label>Deal Expires In</label>
+          <select id="expiresIn">
+            <option value="1">⏱️ 1 Hour</option>
+            <option value="2">⏱️ 2 Hours</option>
+            <option value="4">⏱️ 4 Hours</option>
+            <option value="8">⏱️ 8 Hours</option>
+            <option value="24">⏱️ 24 Hours</option>
+          </select>
+        </div>
 
-      <button onclick="postDeal()">🚀 Post Deal</button>
+        <div style="grid-column:1/-1;">
+          <label>Shop Address (for map pin)</label>
+          <input type="text" id="shopAddress" placeholder="e.g. 12 Anna Nagar, Chennai" />
+        </div>
+      </div>
+
+      <button onclick="postDeal()" class="primary" style="width:100%; margin-top:8px;">
+        🚀 Post Deal
+      </button>
     </div>
 
     <!-- My Active Deals -->
-    <p class="section-title">📦 My Active Deals</p>
+    <p class="section-title fade-in-up stagger-2">
+      📦 My Deals
+      <span class="count" id="myDealCount">0</span>
+    </p>
     <div id="myDeals" class="deal-grid">
-      <p style="color:#888;">Loading your deals...</p>
+      <div class="skeleton-card">
+        <div class="skeleton skeleton-line short"></div>
+        <div class="skeleton skeleton-line long"></div>
+        <div class="skeleton skeleton-line medium"></div>
+      </div>
     </div>
 
   </div>
@@ -105,7 +146,6 @@
   import { getFirestore, collection, addDoc, query, where, onSnapshot, Timestamp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // 🔴 REPLACE THIS WITH YOUR FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyDEWiFeBiiXflPa7ADL6ijQ7NcMubIZScQ",
     authDomain: "dealdrop-16ea7.firebaseapp.com",
@@ -128,11 +168,11 @@
       currentUser = user;
       document.getElementById('authSection').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('logoutBtn').style.display = 'inline';
+      document.getElementById('logoutBtn').style.display = 'inline-flex';
       loadMyDeals();
     } else {
       currentUser = null;
-      document.getElementById('authSection').style.display = 'block';
+      document.getElementById('authSection').style.display = 'flex';
       document.getElementById('dashboard').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
     }
@@ -144,6 +184,7 @@
     const sf = document.getElementById('signupForm');
     lf.style.display = lf.style.display === 'none' ? 'block' : 'none';
     sf.style.display = sf.style.display === 'none' ? 'block' : 'none';
+    document.getElementById('authError').textContent = '';
   };
 
   // ── SIGNUP ──
@@ -151,6 +192,12 @@
     const shopName = document.getElementById('shopName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
     const password = document.getElementById('signupPassword').value;
+
+    if (!shopName || !email || !password) {
+      document.getElementById('authError').textContent = 'Please fill all fields.';
+      return;
+    }
+
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       localStorage.setItem('shopName', shopName);
@@ -164,6 +211,12 @@
   window.login = async () => {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+      document.getElementById('authError').textContent = 'Please fill all fields.';
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
       showToast('Welcome back! 👋');
@@ -173,12 +226,15 @@
   };
 
   // ── LOGOUT ──
-  document.getElementById('logoutBtn').addEventListener('click', () => {
+  document.getElementById('logoutBtn').addEventListener('click', (e) => {
+    e.preventDefault();
     signOut(auth);
+    showToast('Logged out successfully');
   });
 
   // ── POST DEAL ──
   window.postDeal = async () => {
+    const btn = document.querySelector('button.primary');
     const productName = document.getElementById('productName').value.trim();
     const originalPrice = parseFloat(document.getElementById('originalPrice').value);
     const dealPrice = parseFloat(document.getElementById('dealPrice').value);
@@ -188,21 +244,24 @@
     const shopName = localStorage.getItem('shopName') || 'My Shop';
 
     if (!productName || !originalPrice || !dealPrice || !shopAddress) {
-      showToast('Please fill all fields!');
+      showToast('⚠️ Please fill all fields!');
       return;
     }
 
     if (dealPrice >= originalPrice) {
-      showToast('Deal price must be less than original price!');
+      showToast('⚠️ Deal price must be less than original price!');
       return;
     }
 
-    // Calculate expiry time
+    // Show loading state
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Posting...';
+
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
-    // Geocode address using free API
-    let lat = 13.0827; // default: Chennai
+    // Geocode address
+    let lat = 13.0827;
     let lng = 80.2707;
     try {
       const geoRes = await fetch(
@@ -235,14 +294,16 @@
       });
 
       showToast('Deal posted successfully! 🚀');
-      // Clear form
       ['productName','originalPrice','dealPrice','shopAddress'].forEach(id => {
         document.getElementById(id).value = '';
       });
 
     } catch (e) {
-      showToast('Error posting deal. Try again.');
+      showToast('❌ Error posting deal. Try again.');
       console.error(e);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🚀 Post Deal';
     }
   };
 
@@ -256,12 +317,24 @@
     onSnapshot(q, (snapshot) => {
       const container = document.getElementById('myDeals');
       if (snapshot.empty) {
-        container.innerHTML = '<p style="color:#888;">No deals posted yet. Post your first deal above!</p>';
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1;">
+            <div class="icon">📦</div>
+            <p>No deals posted yet.</p>
+            <p style="font-size:0.85rem;margin-top:8px;color:var(--text-muted);">Post your first deal above to get started!</p>
+          </div>
+        `;
+        document.getElementById('myDealCount').textContent = 0;
+        document.getElementById('myActiveDeals').textContent = 0;
+        document.getElementById('myTotalDeals').textContent = 0;
+        document.getElementById('myExpiredDeals').textContent = 0;
         return;
       }
 
       container.innerHTML = '';
       const now = new Date();
+      let activeCount = 0;
+      let expiredCount = 0;
 
       snapshot.forEach(doc => {
         const d = doc.data();
@@ -269,20 +342,50 @@
         const isExpired = expiry < now;
         const timeLeft = getTimeLeft(expiry);
 
-        container.innerHTML += `
-          <div class="card ${isExpired ? 'expired' : ''}">
-            <span class="badge">${d.category}</span>
-            ${isExpired ? '<span class="badge" style="background:#aaa; margin-left:6px;">Expired</span>' : '<span class="badge green" style="margin-left:6px;">Active</span>'}
-            <h3>${d.productName}</h3>
-            <p>🏪 ${d.shopName}</p>
-            <p>📍 ${d.shopAddress}</p>
-            <p>💰 <s>₹${d.originalPrice}</s> → <b>₹${d.dealPrice}</b> (${d.discount}% off)</p>
-            ${!isExpired ? `<p class="countdown">⏳ Expires in: ${timeLeft}</p>` : ''}
+        if (isExpired) expiredCount++;
+        else activeCount++;
+
+        const card = document.createElement('div');
+        card.className = `card ${isExpired ? 'expired' : ''} fade-in-up`;
+        card.innerHTML = `
+          <div class="badge-row">
+            <span class="badge badge-category">${d.category}</span>
+            ${isExpired 
+              ? '<span class="badge" style="background:rgba(255,255,255,0.1);color:var(--text-muted);border:1px solid rgba(255,255,255,0.1);">Expired</span>' 
+              : '<span class="badge badge-active">Active</span>'}
           </div>
+          <h3>${d.productName}</h3>
+          <p>🏪 ${d.shopName}</p>
+          <p>📍 ${d.shopAddress}</p>
+          <div class="price-row">
+            <span class="original-price">₹${d.originalPrice}</span>
+            <span class="deal-price">₹${d.dealPrice}</span>
+            <span class="discount-tag">${d.discount}% OFF</span>
+          </div>
+          ${!isExpired ? `<div class="countdown" data-expiry="${expiry.toISOString()}">⏳ ${timeLeft} left</div>` : ''}
         `;
+        container.appendChild(card);
       });
+
+      document.getElementById('myDealCount').textContent = snapshot.size;
+      document.getElementById('myActiveDeals').textContent = activeCount;
+      document.getElementById('myTotalDeals').textContent = snapshot.size;
+      document.getElementById('myExpiredDeals').textContent = expiredCount;
     });
   }
+
+  // ── LIVE COUNTDOWN TIMER ──
+  setInterval(() => {
+    document.querySelectorAll('.countdown[data-expiry]').forEach(el => {
+      const expiry = new Date(el.dataset.expiry);
+      const timeLeft = getTimeLeft(expiry);
+      if (timeLeft === 'Expired') {
+        el.innerHTML = '❌ Expired';
+      } else {
+        el.innerHTML = `⏳ ${timeLeft} left`;
+      }
+    });
+  }, 1000);
 
   // ── HELPERS ──
   function getTimeLeft(expiryDate) {
@@ -290,6 +393,9 @@
     if (diff <= 0) return 'Expired';
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    if (h === 0 && m === 0) return `${s}s`;
+    if (h === 0) return `${m}m ${s}s`;
     return `${h}h ${m}m`;
   }
 
