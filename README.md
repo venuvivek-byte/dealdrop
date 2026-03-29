@@ -65,7 +65,6 @@ DealDrop gives **retailers** a simple way to publish flash deals with location a
 ### 1. Clone and install
 
 ```bash
-cd dealdrop-react
 npm install
 ```
 
@@ -111,7 +110,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 ## Project structure (overview)
 
 ```
-dealdrop-react/
+./
 ├── src/
 │   ├── App.jsx              # Routes, auth listener
 │   ├── firebase.js          # Firebase init
@@ -120,7 +119,8 @@ dealdrop-react/
 │   └── ...
 ├── firestore.indexes.json   # Firestore composite indexes
 ├── firebase.json            # Firebase CLI (indexes)
-└── package.json
+├── package.json
+└── README.md
 ```
 
 ---
