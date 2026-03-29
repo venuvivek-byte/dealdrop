@@ -308,6 +308,7 @@ nav a.btn-primary:hover, nav .btn-cta:hover {
   color: var(--text-primary);
   -webkit-text-stroke: 2px var(--text-primary);
   -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
 .hero-title .line-filled {
@@ -1000,7 +1001,7 @@ label {
 
 .card .original-price {
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: #a1a1aa;
   font-size: 0.88rem;
 }
 
@@ -1133,6 +1134,7 @@ label {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   gap: 20px;
+  align-items: start;
 }
 
 /* ══════════════════════════════════════════════

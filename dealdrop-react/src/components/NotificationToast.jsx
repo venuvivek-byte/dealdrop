@@ -16,7 +16,7 @@ export default function NotificationToast({ deal, onClose, onView }) {
     }, 6000);
 
     return () => clearTimeout(timer);
-  }, [deal]);
+  }, [deal, onClose]);
 
   if (!deal) return null;
 

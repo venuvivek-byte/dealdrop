@@ -10,11 +10,10 @@ import {
 } from 'firebase/auth';
 import {
   collection, addDoc, query, where, onSnapshot, Timestamp,
-  doc, updateDoc, deleteDoc, getDoc, getDocs
+  doc, updateDoc, deleteDoc, getDocs
 } from 'firebase/firestore';
 import StatsBar from '../components/StatsBar';
 import DealCard from '../components/DealCard';
-import { getTimeLeft } from '../utils';
 import { MapPin, Star } from 'lucide-react';
 
 export default function Retailer({ user }) {
@@ -25,62 +24,6 @@ export default function Retailer({ user }) {
   const [posting, setPosting] = useState(false);
   const [gpsLat, setGpsLat] = useState(null);
   const [gpsLng, setGpsLng] = useState(null);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const [gpsStatus, setGpsStatus] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [isEditingShopName, setIsEditingShopName] = useState(false);

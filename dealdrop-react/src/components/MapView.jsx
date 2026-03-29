@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { getTimeLeft, categoryIcons } from '../utils';
@@ -24,7 +24,7 @@ function FlyTo({ center }) {
   const map = useMap();
   useEffect(() => {
     if (center) map.flyTo(center, 16, { duration: 1.2 });
-  }, [center]);
+  }, [center, map]);
   return null;
 }
 

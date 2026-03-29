@@ -35,7 +35,7 @@ export default function DealModal({ deal, onClose }) {
 
     const ratedDeals = JSON.parse(localStorage.getItem('dealdrop_rated_deals') || '[]');
     setIsRated(ratedDeals.includes(deal.id));
-  }, [deal?.id, deal?.shopName]);
+  }, [deal]);
 
   // Fetch average rating for shop
   useEffect(() => {
@@ -52,7 +52,7 @@ export default function DealModal({ deal, onClose }) {
       } catch (e) { console.error('Error fetching ratings:', e); }
     };
     fetchRating();
-  }, [deal?.shopName]);
+  }, [deal]);
 
   // Fetch price history for the same product
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function DealModal({ deal, onClose }) {
       }
     };
     fetchHistory();
-  }, [deal?.id, deal?.productName]);
+  }, [deal]);
 
   if (!deal) return null;
 

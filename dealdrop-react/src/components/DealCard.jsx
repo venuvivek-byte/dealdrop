@@ -22,6 +22,7 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isReta
   useEffect(() => {
     if (isRetailer) return;
     const favs = JSON.parse(localStorage.getItem('dealdrop_favs') || '[]');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsFav(favs.includes(deal.id));
   }, [deal.id, isRetailer]);
 
