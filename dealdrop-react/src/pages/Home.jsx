@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { collection, query, where, onSnapshot, Timestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
-import { MapPin, Zap, Target, ArrowRight, DollarSign, Clock, Map, CheckCircle } from 'lucide-react';
+import { MapPin, Zap, Target } from 'lucide-react';
 import { getDistanceKm } from '../utils';
 import StatsBar from '../components/StatsBar';
 import SearchBar from '../components/SearchBar';
@@ -25,6 +25,17 @@ export default function Home() {
   const prevDealIds = useRef(new Set());
   const [userLocation, setUserLocation] = useState(null);
   const [radiusKm, setRadiusKm] = useState(50); // default: show all
+  const [dealsExpiringToday, setDealsExpiringToday] = useState([]);
+  const [dayKey, setDayKey] = useState(() => new Date().toDateString());
+
+  // Roll “today” over at local midnight without full page refresh
+  useEffect(() => {
+    const id = setInterval(() => {
+      const d = new Date().toDateString();
+      setDayKey((prev) => (prev !== d ? d : prev));
+    }, 30000);
+    return () => clearInterval(id);
+  }, []);
 
   // Get user location for radius filter
   useEffect(() => {
@@ -63,6 +74,29 @@ export default function Home() {
 
     return () => unsub();
   }, []);
+
+  // Deals whose expiry timestamp falls on the local calendar day (for “today” stats)
+  useEffect(() => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const q = query(
+      collection(db, 'deals'),
+      where('expiresAt', '>=', Timestamp.fromDate(start)),
+      where('expiresAt', '<=', Timestamp.fromDate(end))
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .filter((d) => d.active !== false);
+      setDealsExpiringToday(data);
+    });
+
+    return () => unsub();
+  }, [dayKey]);
 
   // Filter & sort
   const filtered = useMemo(() => {
@@ -119,18 +153,33 @@ export default function Home() {
     return result;
   }, [deals, search, category, sortBy, priceRange, quickFilter, userLocation, radiusKm]);
 
-  // Stats
+  // Stats of the day: active listings, expired today, best discount (today’s scope), total claims
   const stats = useMemo(() => {
-    const shops = new Set(deals.map(d => d.shopName));
-    const best = deals.length > 0 ? Math.max(...deals.map(d => d.discount)) : 0;
-    const itemsSaved = deals.length * 5;
-    return [
-      { value: deals.length, label: 'Active Deals' },
-      { value: shops.size, label: 'Local Retailers' },
-      { value: itemsSaved, label: 'Items Saved Today' },
-      { value: best + '%', label: 'Best Discount' },
+    const now = new Date();
+    const expiredToday = dealsExpiringToday.filter(
+      (d) => d.expiresAt?.toDate && d.expiresAt.toDate() < now
+    );
+
+    const activeCount = deals.length;
+    const expiredCount = expiredToday.length;
+
+    const discounts = [
+      ...deals.map((d) => d.discount || 0),
+      ...expiredToday.map((d) => d.discount || 0),
     ];
-  }, [deals]);
+    const best = discounts.length > 0 ? Math.max(...discounts) : 0;
+
+    const itemsSaved =
+      deals.reduce((s, d) => s + (Number(d.claims) || 0), 0) +
+      expiredToday.reduce((s, d) => s + (Number(d.claims) || 0), 0);
+
+    return [
+      { value: activeCount, label: 'Active' },
+      { value: expiredCount, label: 'Expired today' },
+      { value: best + '%', label: 'Best discount' },
+      { value: itemsSaved, label: 'Items saved' },
+    ];
+  }, [deals, dealsExpiringToday]);
 
   const handleOpenDeal = async (deal) => {
     setSelectedDeal(deal);
@@ -259,6 +308,11 @@ export default function Home() {
                   index={i}
                   onFlyTo={handleFlyTo}
                   onOpenModal={handleOpenDeal}
+                  distanceKm={
+                    userLocation && typeof deal.lat === 'number' && typeof deal.lng === 'number'
+                      ? getDistanceKm(userLocation.lat, userLocation.lng, deal.lat, deal.lng)
+                      : null
+                  }
                 />
               ))
             )}
@@ -326,27 +380,27 @@ export default function Home() {
           
           <div className="retailers-stats">
             <div className="retailer-stat-card">
-              <div className="retailer-stat-icon" style={{color: '#f59e0b'}}>💰</div>
-              <div className="retailer-stat-value">₹2.4L</div>
-              <div className="retailer-stat-label">Avg monthly savings for retailers</div>
+              <div className="retailer-stat-icon" style={{color: '#f59e0b'}}>📡</div>
+              <div className="retailer-stat-value">Live</div>
+              <div className="retailer-stat-label">Deals sync instantly for nearby shoppers</div>
             </div>
             
             <div className="retailer-stat-card">
               <div className="retailer-stat-icon" style={{color: '#ff4500'}}>⚡</div>
-              <div className="retailer-stat-value">60S</div>
-              <div className="retailer-stat-label">To post your first deal</div>
+              <div className="retailer-stat-value">Under 1 min</div>
+              <div className="retailer-stat-label">Quick post flow with GPS or address</div>
             </div>
             
             <div className="retailer-stat-card">
               <div className="retailer-stat-icon" style={{color: '#ec4899'}}>📍</div>
-              <div className="retailer-stat-value">5KM</div>
-              <div className="retailer-stat-label">Hyperlocal reach radius</div>
+              <div className="retailer-stat-value">50 km</div>
+              <div className="retailer-stat-label">Adjustable map radius (when location on)</div>
             </div>
             
             <div className="retailer-stat-card">
               <div className="retailer-stat-icon" style={{color: '#10b981'}}>✅</div>
               <div className="retailer-stat-value">FREE</div>
-              <div className="retailer-stat-label">Zero listing fees</div>
+              <div className="retailer-stat-label">No listing fees for retailers</div>
             </div>
           </div>
         </div>

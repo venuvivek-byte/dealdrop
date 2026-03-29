@@ -7,7 +7,8 @@ export default function Navbar({ user }) {
   const location = useLocation();
   const isRetailer = location.pathname === '/retailer';
 
-  const handleLogout = () => {
+  const handleLogout = (e) => {
+    e.preventDefault();
     signOut(auth);
   };
 

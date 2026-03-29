@@ -1458,6 +1458,11 @@ label {
   filter: grayscale(40%);
 }
 
+/* Expired cards disable opening the deal, but retailers still need the action bar */
+.expired .retailer-actions {
+  pointer-events: auto;
+}
+
 /* ══════════════════════════════════════════════
    SKELETON LOADING
    ══════════════════════════════════════════════ */
@@ -2256,4 +2261,70 @@ label {
 
 .share-fallback-btn:hover {
   background: var(--bg-glass-strong);
+}
+
+/* ══════════════════════════════════════════════
+   DASHBOARD INSIGHTS & CHARTS
+   ══════════════════════════════════════════════ */
+.dashboard-insights {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-insights {
+    grid-template-columns: 1fr;
+  }
+}
+
+.verify-section, .revenue-chart-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.revenue-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chart-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chart-revenue-text {
+  color: #34d399;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+}
+
+.chart-track {
+  width: 100%;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-fill {
+  height: 100%;
+  background: var(--gradient-success);
+  border-radius: 6px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
 }

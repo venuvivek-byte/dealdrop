@@ -207,10 +207,26 @@ export default function Retailer({ user }) {
   };
 
   const handleDelete = async (deal) => {
-    if (!confirm('Are you sure you want to delete this deal?')) return;
+    // If it's an old test deal with 0 claims, we can just delete it forever
+    // Otherwise we soft-delete to keep leaderboard points
+    const isActuallyDeleting = (deal.claims || 0) === 0;
+    
+    console.log(`${isActuallyDeleting ? 'Deleting' : 'Hiding'} deal:`, deal.id);
+    
     try {
-      await deleteDoc(doc(db, 'deals', deal.id));
-    } catch (e) { console.error(e); }
+      if (isActuallyDeleting) {
+        await deleteDoc(doc(db, 'deals', deal.id));
+      } else {
+        await updateDoc(doc(db, 'deals', deal.id), { active: false });
+      }
+      
+      console.log('✅ Operation successful');
+      // Adding a small alert so the user knows it happened
+      alert('Deal removed successfully!');
+    } catch (e) { 
+      console.error('Removal error:', e);
+      alert('Failed to remove deal. Error: ' + e.message);
+    }
   };
 
   const handleExtend = async (deal) => {
@@ -224,6 +240,8 @@ export default function Retailer({ user }) {
     } catch (e) { console.error(e); }
   };
 
+
+
   const saveShopName = () => {
     localStorage.setItem('shopName', shopNameValue);
     setIsEditingShopName(false);
@@ -235,6 +253,15 @@ export default function Retailer({ user }) {
   const totalViews = deals.reduce((acc, curr) => acc + (curr.views || 0), 0);
   const totalClaims = deals.reduce((acc, curr) => acc + (curr.claims || 0), 0);
   const uniqueProducts = new Set(deals.map(d => d.productName?.trim().toLowerCase())).size;
+
+  // Chart Data: Top 5 deals by potential revenue
+  const chartData = active.map(d => ({
+    id: d.id,
+    name: d.productName.length > 20 ? d.productName.substring(0, 20) + '...' : d.productName,
+    revenue: (d.claims || 0) * d.dealPrice,
+    claims: d.claims || 0
+  })).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  const maxRevenue = Math.max(...chartData.map(d => d.revenue), 1);
 
   // ── AUTH VIEW ──
   if (!user || !user.emailVerified) {
@@ -320,7 +347,27 @@ export default function Retailer({ user }) {
         { value: totalClaims, label: 'Total Claims' },
       ]} />
 
-      <div className="retailer-profile-card fade-in-up">
+      <div className="dashboard-insights fade-in-up stagger-1">
+        <div className="revenue-chart-section" style={{ gridColumn: '1 / -1' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>📊 Value Generated</h3>
+          {chartData.length > 0 ? (
+            <div className="revenue-chart">
+              {chartData.map(d => (
+                <div key={d.id} className="chart-bar-container">
+                  <div className="chart-label">{d.name} <span className="chart-revenue-text">₹{d.revenue}</span></div>
+                  <div className="chart-track">
+                    <div className="chart-fill fade-in-scale" style={{ width: `${Math.max((d.revenue / maxRevenue) * 100, 2)}%` }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="subtitle" style={{marginTop: 20}}>No active claims yet to generate revenue insights.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="retailer-profile-card fade-in-up stagger-2">
         <div className="profile-header">
           <div className="profile-avatar">🏪</div>
           <div className="profile-info">
@@ -435,7 +482,7 @@ export default function Retailer({ user }) {
 
       <div className="section-title fade-in-up stagger-2">
         <span className="icon">📦</span> My Deals
-        <span className="count">{deals.length}</span>
+        <span className="count">{deals.filter(d => d.active !== false).length}</span>
       </div>
 
       <div className="deal-grid">
@@ -448,17 +495,19 @@ export default function Retailer({ user }) {
             <p className="sub">Post your first deal above!</p>
           </div>
         ) : (
-          deals.map((deal, i) => (
-            <DealCard
-              key={deal.id}
-              deal={deal}
-              index={i}
-              isRetailer={true}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onExtend={handleExtend}
-            />
-          ))
+          deals
+            .filter(d => d.active !== false) // Hide soft-deleted deals from the UI
+            .map((deal, i) => (
+              <DealCard
+                key={deal.id}
+                deal={deal}
+                index={i}
+                isRetailer={true}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onExtend={handleExtend}
+              />
+            ))
         )}
       </div>
     </div>

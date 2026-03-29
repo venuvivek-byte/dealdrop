@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getTimeLeft, getUrgencyBadge, categoryIcons } from '../utils';
 import { X, MapPin, Navigation, Clock, Share2, Heart, CheckCircle, TrendingDown, TrendingUp, Star, Copy, MessageCircle } from 'lucide-react';
-import { doc, updateDoc, increment, collection, query, where, getDocs, addDoc, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, increment, collection, query, where, getDocs, addDoc, Timestamp, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function DealModal({ deal, onClose }) {
@@ -176,14 +176,22 @@ export default function DealModal({ deal, onClose }) {
   };
 
   const handleClaim = async () => {
-    if (claimedCode || isClaiming || timeLeft === 'Expired') return;
+    if (isClaiming || timeLeft === 'Expired') return;
+    
+    // If already claimed locally, we still allow re-running the update to "repair" Firestore if missing
     setIsClaiming(true);
 
-    const newCode = generateClaimCode();
+    const newCode = claimedCode || generateClaimCode(); 
     
     try {
-      // Increment claims in Firestore
-      await updateDoc(doc(db, 'deals', deal.id), { claims: increment(1) });
+      console.log(`Writing code ${newCode} to Firestore for deal ID: ${deal.id}`);
+      const dealRef = doc(db, 'deals', deal.id);
+      
+      // Update Firestore
+      await updateDoc(dealRef, { 
+        claims: increment(claimedCode ? 0 : 1), 
+        activeCodes: arrayUnion(newCode) 
+      });
       
       // Save code locally
       const claims = JSON.parse(localStorage.getItem('dealdrop_claims') || '{}');
@@ -191,6 +199,7 @@ export default function DealModal({ deal, onClose }) {
       localStorage.setItem('dealdrop_claims', JSON.stringify(claims));
       
       setClaimedCode(newCode);
+      console.log('✅ Firestore updated successfully!');
     } catch (e) {
       console.error('Error claiming deal:', e);
       alert('Failed to claim deal. Please try again.');

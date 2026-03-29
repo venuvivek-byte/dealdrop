@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getTimeLeft, getUrgencyBadge, categoryIcons } from '../utils';
 import { Heart } from 'lucide-react';
 
-export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isRetailer, onDelete, onExtend, onEdit }) {
+export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isRetailer, onDelete, onExtend, onEdit, distanceKm = null }) {
   const [timeLeft, setTimeLeft] = useState('');
   const [isFav, setIsFav] = useState(false);
 
@@ -41,6 +41,12 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isReta
 
   const isExpired = timeLeft === 'Expired';
 
+  const handleShare = (e) => {
+    e.stopPropagation();
+    const shareText = `🔥 FLASH DEAL at ${deal.shopName}!\n\n🏷️ ${deal.productName}\n💰 Only ₹${deal.dealPrice} (was ₹${deal.originalPrice})\n\n📍 ${deal.shopAddress}\n\nCatch this deal on DealDrop now! -> ${window.location.origin}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+  };
+
   return (
     <div
       className={`card fade-in-up ${isExpired ? 'expired' : ''}`}
@@ -75,6 +81,9 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isReta
       {deal.quantity && <p>📦 {deal.quantity} {deal.unit || 'kg'}</p>}
       <p>🏪 {deal.shopName}</p>
       <p>📍 {deal.shopAddress}</p>
+      {!isRetailer && distanceKm != null && Number.isFinite(distanceKm) && (
+        <p style={{ color: 'var(--accent-light)', fontWeight: 600 }}>🧭 ~{distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`} away</p>
+      )}
       <div className="price-row">
         <span className="original-price">₹{deal.originalPrice}</span>
         <span className="deal-price">₹{deal.dealPrice}</span>
@@ -93,16 +102,32 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isReta
 
       {isRetailer && (
         <div className="retailer-actions" style={{ display: 'flex', gap: 8, marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 16 }}>
-          <button className="secondary" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem' }} onClick={(e) => { e.stopPropagation(); onEdit?.(deal); }}>
-            Edit
-          </button>
           {!isExpired && (
-            <button className="primary" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem' }} onClick={(e) => { e.stopPropagation(); onExtend?.(deal); }}>
-              +1 Hr
-            </button>
+            <>
+              <button className="secondary" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem' }} onClick={(e) => { e.stopPropagation(); onEdit?.(deal); }}>
+                Edit
+              </button>
+              <button className="primary" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem' }} onClick={(e) => { e.stopPropagation(); onExtend?.(deal); }}>
+                +1 Hr
+              </button>
+              <button className="primary" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem', background: '#25D366', color: '#fff', border: 'none' }} onClick={handleShare}>
+                Share 📢
+              </button>
+            </>
           )}
-          <button className="danger" style={{ flex: 1, padding: '8px 4px', fontSize: '0.8rem', background: '#f43f5e', color: '#fff', border: 'none' }} onClick={(e) => { e.stopPropagation(); onDelete?.(deal); }}>
-            Delete
+          <button 
+            className="danger" 
+            style={{ flex: 1, padding: '12px 4px', fontSize: '0.85rem', background: '#f43f5e', color: '#fff', border: 'none', fontWeight: isExpired ? '600' : 'normal', cursor: 'pointer' }} 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onDelete) onDelete(deal);
+              else {
+                console.error('onDelete prop is missing in DealCard!');
+                alert('Contact Support: Delete function missing.');
+              }
+            }}
+          >
+            Delete {isExpired ? 'Expired Deal' : ''}
           </button>
         </div>
       )}
