@@ -10,6 +10,7 @@ import DealCard from '../components/DealCard';
 import DealModal from '../components/DealModal';
 import NotificationToast from '../components/NotificationToast';
 import Footer from '../components/Footer';
+import { mergeDealsWithDemo } from '../data/demoDeals';
 
 export default function Home() {
   const [deals, setDeals] = useState([]);
@@ -58,8 +59,8 @@ export default function Home() {
 
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Detect new deals for toast notification
+
+      // Detect new deals for toast (Firestore only — not demo seed)
       if (prevDealIds.current.size > 0) {
         const newDeals = data.filter(d => !prevDealIds.current.has(d.id));
         if (newDeals.length > 0) {
@@ -67,8 +68,8 @@ export default function Home() {
         }
       }
       prevDealIds.current = new Set(data.map(d => d.id));
-      
-      setDeals(data);
+
+      setDeals(mergeDealsWithDemo(data));
       setLoading(false);
     });
 
@@ -184,6 +185,7 @@ export default function Home() {
   const handleOpenDeal = async (deal) => {
     setSelectedDeal(deal);
     if (!deal) return;
+    if (deal.isDemo) return;
     try {
       await updateDoc(doc(db, 'deals', deal.id), { views: increment(1) });
     } catch(e) { console.error('Error incrementing views', e); }
@@ -194,8 +196,26 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const demoSeedOn = import.meta.env.VITE_DEMO_SEED === 'true';
+
   return (
     <div className="landing-container">
+      {demoSeedOn && (
+        <div
+          role="status"
+          style={{
+            textAlign: 'center',
+            padding: '10px 16px',
+            fontSize: '0.85rem',
+            background: 'linear-gradient(90deg, rgba(244,63,94,0.15), rgba(251,191,36,0.12))',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <strong style={{ color: 'var(--accent-light)' }}>Demo mode:</strong> sample deals are layered on for recording — set{' '}
+          <code style={{ fontSize: '0.8rem' }}>VITE_DEMO_SEED=false</code> in <code style={{ fontSize: '0.8rem' }}>.env.local</code> for production.
+        </div>
+      )}
       {/* Hero Section */}
       <section className="hero-section fade-in-up">
         <div className="hero-badge">

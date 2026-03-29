@@ -141,7 +141,14 @@ export default function DealModal({ deal, onClose }) {
   const submitRating = async (ratingVal) => {
     if (isRated || !ratingVal) return;
     setUserRating(ratingVal);
-    
+
+    if (deal.isDemo) {
+      setIsRated(true);
+      setShopRating(ratingVal);
+      setShopRatingCount(1);
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'reviews'), {
         retailerId: deal.retailerId,
@@ -181,23 +188,33 @@ export default function DealModal({ deal, onClose }) {
     // If already claimed locally, we still allow re-running the update to "repair" Firestore if missing
     setIsClaiming(true);
 
-    const newCode = claimedCode || generateClaimCode(); 
-    
+    const newCode = claimedCode || generateClaimCode();
+
+    if (deal.isDemo) {
+      try {
+        const claims = JSON.parse(localStorage.getItem('dealdrop_claims') || '{}');
+        claims[deal.id] = newCode;
+        localStorage.setItem('dealdrop_claims', JSON.stringify(claims));
+        setClaimedCode(newCode);
+      } finally {
+        setIsClaiming(false);
+      }
+      return;
+    }
+
     try {
       console.log(`Writing code ${newCode} to Firestore for deal ID: ${deal.id}`);
       const dealRef = doc(db, 'deals', deal.id);
-      
-      // Update Firestore
-      await updateDoc(dealRef, { 
-        claims: increment(claimedCode ? 0 : 1), 
-        activeCodes: arrayUnion(newCode) 
+
+      await updateDoc(dealRef, {
+        claims: increment(claimedCode ? 0 : 1),
+        activeCodes: arrayUnion(newCode),
       });
-      
-      // Save code locally
+
       const claims = JSON.parse(localStorage.getItem('dealdrop_claims') || '{}');
       claims[deal.id] = newCode;
       localStorage.setItem('dealdrop_claims', JSON.stringify(claims));
-      
+
       setClaimedCode(newCode);
       console.log('✅ Firestore updated successfully!');
     } catch (e) {
