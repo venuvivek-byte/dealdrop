@@ -1,0 +1,53 @@
+﻿
+> dealdrop-react@0.0.0 dev
+> vite
+
+node.exe : [31merror when 
+starting dev server:
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: ([3  
+  1merror when starting    
+ dev server::String) []    
+, RemoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+Error: Port 5173 is 
+already in use
+    at httpServerStart (fil
+e:///C:/Users/bf772/Downloa
+ds/dealdrop-main/dealdrop-m
+ain/dealdrop-react/node_mod
+ules/vite/dist/node/chunks/
+node.js:10635:25)
+    at process.processTicks
+AndRejections (node:interna
+l/process/task_queues:104:5
+)
+    at async startServer (f
+ile:///C:/Users/bf772/Downl
+oads/dealdrop-main/dealdrop
+-main/dealdrop-react/node_m
+odules/vite/dist/node/chunk
+s/node.js:26219:30)
+    at async Object.listen 
+(file:///C:/Users/bf772/Dow
+nloads/dealdrop-main/dealdr
+op-main/dealdrop-react/node
+_modules/vite/dist/node/chu
+nks/node.js:26040:4)
+    at async 
+CAC.<anonymous> (file:///C:
+/Users/bf772/Downloads/deal
+drop-main/dealdrop-main/dea
+ldrop-react/node_modules/vi
+te/dist/node/cli.js:722:3)
+[39m

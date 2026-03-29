@@ -71,6 +71,7 @@ export default function DealCard({ deal, index = 0, onFlyTo, onOpenModal, isReta
         <span className={`badge ${urgency.class}`}>{urgency.label}</span>
       </div>
       <h3>{deal.productName}</h3>
+      {deal.quantity && <p>📦 {deal.quantity} {deal.unit || 'kg'}</p>}
       <p>🏪 {deal.shopName}</p>
       <p>📍 {deal.shopAddress}</p>
       <div className="price-row">

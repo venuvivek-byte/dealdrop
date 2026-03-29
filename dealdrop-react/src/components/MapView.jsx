@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { getTimeLeft, categoryIcons } from '../utils';
 import 'leaflet/dist/leaflet.css';
@@ -28,25 +28,17 @@ function FlyTo({ center }) {
   return null;
 }
 
-function UserLocation() {
+function UserLocation({ userLocation }) {
   const map = useMap();
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude, longitude } = pos.coords;
-        map.setView([latitude, longitude], 13);
-        const icon = createIcon('📍', '#10b981', '#34d399', 40);
-        L.marker([latitude, longitude], { icon })
-          .addTo(map)
-          .bindPopup('<div style="font-family:Inter,sans-serif;font-weight:700;text-align:center;">📍 You are here</div>')
-          .openPopup();
-      });
+    if (userLocation) {
+      map.setView([userLocation.lat, userLocation.lng], 13);
     }
-  }, []);
+  }, [userLocation, map]);
   return null;
 }
 
-export default function MapView({ deals, flyToTarget }) {
+export default function MapView({ deals, flyToTarget, userLocation, radiusKm }) {
   return (
     <MapContainer
       center={[13.0827, 80.2707]}
@@ -60,8 +52,34 @@ export default function MapView({ deals, flyToTarget }) {
         attribution="© OpenStreetMap © CARTO"
         maxZoom={19}
       />
-      <UserLocation />
+      <UserLocation userLocation={userLocation} />
       {flyToTarget && <FlyTo center={flyToTarget} />}
+
+      {/* Radius circle overlay */}
+      {userLocation && radiusKm && radiusKm < 50 && (
+        <Circle
+          center={[userLocation.lat, userLocation.lng]}
+          radius={radiusKm * 1000}
+          pathOptions={{
+            color: '#ff4500',
+            fillColor: '#ff4500',
+            fillOpacity: 0.08,
+            weight: 2,
+            dashArray: '8, 6',
+          }}
+        />
+      )}
+      {/* User Location Marker Overlay */}
+      {userLocation && (
+        <Marker
+          position={[userLocation.lat, userLocation.lng]}
+          icon={createIcon('📍', '#10b981', '#34d399', 40)}
+        >
+          <Popup>
+             <div style={{fontFamily:'Inter,sans-serif',fontWeight:700,textAlign:'center'}}>📍 You are here</div>
+          </Popup>
+        </Marker>
+      )}
 
       {deals.map(deal => {
         const icon = createIcon(categoryIcons[deal.category] || '🏷️');

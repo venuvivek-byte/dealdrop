@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { Trophy } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 
@@ -34,6 +35,7 @@ export default function Navbar({ user }) {
           <>
             <Link to="/" className={`nav-link-item ${location.pathname === '/' ? 'active-link' : ''}`}>Home</Link>
             <a href="#live-deals" className="nav-link-item">Browse LIVE</a>
+            <Link to="/leaderboard" className={`nav-link-item ${location.pathname === '/leaderboard' ? 'active-link' : ''}`}><Trophy size={14} /> Leaderboard</Link>
             <Link to="/retailer" className={`nav-link-item ${location.pathname === '/retailer' ? 'active-link' : ''}`}>Retailer</Link>
             <a href="#map-view" className="btn-cta">
               Find Deals Near Me &rarr;

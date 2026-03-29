@@ -5,6 +5,7 @@ import { auth } from './firebase';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Retailer from './pages/Retailer';
+import Leaderboard from './pages/Leaderboard';
 import './index.css';
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/retailer" element={<Retailer user={user} />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
       </Routes>
     </Router>
   );

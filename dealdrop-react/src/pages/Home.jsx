@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { collection, query, where, onSnapshot, Timestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 import { MapPin, Zap, Target, ArrowRight, DollarSign, Clock, Map, CheckCircle } from 'lucide-react';
+import { getDistanceKm } from '../utils';
 import StatsBar from '../components/StatsBar';
 import SearchBar from '../components/SearchBar';
 import MapView from '../components/MapView';
@@ -22,6 +23,18 @@ export default function Home() {
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [toastDeal, setToastDeal] = useState(null);
   const prevDealIds = useRef(new Set());
+  const [userLocation, setUserLocation] = useState(null);
+  const [radiusKm, setRadiusKm] = useState(50); // default: show all
+
+  // Get user location for radius filter
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => console.log('Location access denied')
+      );
+    }
+  }, []);
 
   // Fetch deals
   useEffect(() => {
@@ -54,6 +67,9 @@ export default function Home() {
   // Filter & sort
   const filtered = useMemo(() => {
     let result = deals.filter(d => {
+      // Prevent crash for legacy deals with missing coordinates
+      if (typeof d.lat !== 'number' || typeof d.lng !== 'number') return false;
+
       const matchSearch = d.productName.toLowerCase().includes(search.toLowerCase()) ||
                           d.shopName.toLowerCase().includes(search.toLowerCase());
       const matchCat = category === 'All' || d.category === category;
@@ -74,7 +90,14 @@ export default function Home() {
         matchQuick = d.dealPrice < 100;
       }
 
-      return matchSearch && matchCat && matchPrice && matchQuick;
+      // Radius filter
+      let matchRadius = true;
+      if (userLocation && radiusKm < 50) {
+        const dist = getDistanceKm(userLocation.lat, userLocation.lng, d.lat, d.lng);
+        matchRadius = dist <= radiusKm;
+      }
+
+      return matchSearch && matchCat && matchPrice && matchQuick && matchRadius;
     });
 
     switch (sortBy) {
@@ -94,7 +117,7 @@ export default function Home() {
         result.sort((a, b) => b.createdAt?.toDate() - a.createdAt?.toDate());
     }
     return result;
-  }, [deals, search, category, sortBy, priceRange, quickFilter]);
+  }, [deals, search, category, sortBy, priceRange, quickFilter, userLocation, radiusKm]);
 
   // Stats
   const stats = useMemo(() => {
@@ -249,7 +272,41 @@ export default function Home() {
           <div className="section-title">
             <span className="icon">📍</span> Map View
           </div>
-          <MapView deals={filtered} flyToTarget={flyTo} />
+
+          {/* Radius Filter */}
+          <div className="radius-filter">
+            <div className="radius-filter-header">
+              <span className="radius-filter-label">🎯 Nearby Radius</span>
+              <span className="radius-filter-value">
+                {radiusKm >= 50 ? 'All Deals' : `${radiusKm} km`}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="50"
+              value={radiusKm}
+              onChange={e => setRadiusKm(parseInt(e.target.value))}
+              className="radius-slider"
+            />
+            <div className="radius-marks">
+              <span>1 km</span>
+              <span>5 km</span>
+              <span>10 km</span>
+              <span>25 km</span>
+              <span>All</span>
+            </div>
+            {!userLocation && (
+              <p className="radius-hint">📍 Enable location access to use radius filter</p>
+            )}
+            {userLocation && radiusKm < 50 && (
+              <p className="radius-result">
+                Showing {filtered.length} deal{filtered.length !== 1 ? 's' : ''} within {radiusKm} km
+              </p>
+            )}
+          </div>
+
+          <MapView deals={filtered} flyToTarget={flyTo} userLocation={userLocation} radiusKm={radiusKm} />
         </div>
       </section>
 
