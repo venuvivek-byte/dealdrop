@@ -6,6 +6,12 @@ Built for **Vashisht Hackathon 3.0** · **RetailTech** track.
 
 ---
 
+## Demo Video
+
+[Watch DealDrop Demo Video (Google Drive)](https://drive.google.com/file/d/1M4kTK9tCTNrR_6ctHstGiaXvorkJfAob/view?usp=sharing)
+
+---
+
 ## Problem statement
 
 Local retailers often struggle to clear **overstocked** or **near-expiry** inventory because they lack strong digital visibility. At the same time, **nearby customers** miss short-lived discounts simply because they do not know a deal exists a few streets away.
