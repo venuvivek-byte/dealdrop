@@ -142,13 +142,6 @@ export default function DealModal({ deal, onClose }) {
     if (isRated || !ratingVal) return;
     setUserRating(ratingVal);
 
-    if (deal.isDemo) {
-      setIsRated(true);
-      setShopRating(ratingVal);
-      setShopRatingCount(1);
-      return;
-    }
-
     try {
       await addDoc(collection(db, 'reviews'), {
         retailerId: deal.retailerId,
@@ -189,18 +182,6 @@ export default function DealModal({ deal, onClose }) {
     setIsClaiming(true);
 
     const newCode = claimedCode || generateClaimCode();
-
-    if (deal.isDemo) {
-      try {
-        const claims = JSON.parse(localStorage.getItem('dealdrop_claims') || '{}');
-        claims[deal.id] = newCode;
-        localStorage.setItem('dealdrop_claims', JSON.stringify(claims));
-        setClaimedCode(newCode);
-      } finally {
-        setIsClaiming(false);
-      }
-      return;
-    }
 
     try {
       console.log(`Writing code ${newCode} to Firestore for deal ID: ${deal.id}`);

@@ -10,7 +10,6 @@ import DealCard from '../components/DealCard';
 import DealModal from '../components/DealModal';
 import NotificationToast from '../components/NotificationToast';
 import Footer from '../components/Footer';
-import { mergeDealsWithDemo } from '../data/demoDeals';
 
 export default function Home() {
   const [deals, setDeals] = useState([]);
@@ -60,7 +59,7 @@ export default function Home() {
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // Detect new deals for toast (Firestore only — not demo seed)
+      // Detect new deals for toast notification
       if (prevDealIds.current.size > 0) {
         const newDeals = data.filter(d => !prevDealIds.current.has(d.id));
         if (newDeals.length > 0) {
@@ -69,7 +68,7 @@ export default function Home() {
       }
       prevDealIds.current = new Set(data.map(d => d.id));
 
-      setDeals(mergeDealsWithDemo(data));
+      setDeals(data);
       setLoading(false);
     });
 
@@ -185,7 +184,6 @@ export default function Home() {
   const handleOpenDeal = async (deal) => {
     setSelectedDeal(deal);
     if (!deal) return;
-    if (deal.isDemo) return;
     try {
       await updateDoc(doc(db, 'deals', deal.id), { views: increment(1) });
     } catch(e) { console.error('Error incrementing views', e); }
@@ -196,26 +194,8 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const demoSeedOn = import.meta.env.VITE_DEMO_SEED === 'true';
-
   return (
     <div className="landing-container">
-      {demoSeedOn && (
-        <div
-          role="status"
-          style={{
-            textAlign: 'center',
-            padding: '10px 16px',
-            fontSize: '0.85rem',
-            background: 'linear-gradient(90deg, rgba(244,63,94,0.15), rgba(251,191,36,0.12))',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          <strong style={{ color: 'var(--accent-light)' }}>Demo mode:</strong> sample deals are layered on for recording — set{' '}
-          <code style={{ fontSize: '0.8rem' }}>VITE_DEMO_SEED=false</code> in <code style={{ fontSize: '0.8rem' }}>.env.local</code> for production.
-        </div>
-      )}
       {/* Hero Section */}
       <section className="hero-section fade-in-up">
         <div className="hero-badge">
@@ -363,12 +343,22 @@ export default function Home() {
               onChange={e => setRadiusKm(parseInt(e.target.value))}
               className="radius-slider"
             />
-            <div className="radius-marks">
-              <span>1 km</span>
-              <span>5 km</span>
-              <span>10 km</span>
-              <span>25 km</span>
-              <span>All</span>
+            <div className="radius-marks" aria-hidden="true">
+              {[
+                { v: 1, label: '1 km' },
+                { v: 5, label: '5 km' },
+                { v: 10, label: '10 km' },
+                { v: 25, label: '25 km' },
+                { v: 50, label: 'All' },
+              ].map((m) => (
+                <span
+                  key={m.v}
+                  className="radius-mark"
+                  style={{ left: `${((m.v - 1) / (50 - 1)) * 100}%` }}
+                >
+                  {m.label}
+                </span>
+              ))}
             </div>
             {!userLocation && (
               <p className="radius-hint">📍 Enable location access to use radius filter</p>
@@ -380,7 +370,12 @@ export default function Home() {
             )}
           </div>
 
-          <MapView deals={filtered} flyToTarget={flyTo} userLocation={userLocation} radiusKm={radiusKm} />
+          <MapView
+            deals={filtered}
+            flyToTarget={flyTo}
+            userLocation={userLocation}
+            radiusKm={radiusKm}
+          />
         </div>
       </section>
 

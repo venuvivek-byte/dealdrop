@@ -92,10 +92,6 @@ npm run dev
 
 Open the URL shown in the terminal (usually `http://localhost:5173`).
 
-### Optional — Demo video (sample deals on Home)
-
-For recordings or screenshots when Firestore has few deals: copy `.env.example` to `.env.local`, set `VITE_DEMO_SEED=true`, restart the dev server. Eight sample Chennai-area listings are merged into the home list and map (a small banner indicates demo mode). Claim and rating still work locally for those rows. Set `VITE_DEMO_SEED=false` or remove the variable for normal behaviour.
-
 ### 5. Other commands
 
 | Command        | Description                |
@@ -115,7 +111,6 @@ dealdrop-react/
 │   ├── firebase.js          # Firebase init
 │   ├── pages/               # Home, Retailer, Leaderboard
 │   ├── components/          # Map, cards, modal, navbar, etc.
-│   ├── data/demoDeals.js    # Optional seeded deals (VITE_DEMO_SEED)
 │   └── ...
 ├── firestore.indexes.json   # Firestore composite indexes
 ├── firebase.json            # Firebase CLI (indexes)

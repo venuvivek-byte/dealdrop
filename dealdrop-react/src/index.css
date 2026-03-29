@@ -1766,12 +1766,18 @@ label {
 }
 
 .radius-marks {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  height: 16px;
   margin-top: 8px;
   font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 500;
+}
+
+.radius-mark {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .radius-hint {
