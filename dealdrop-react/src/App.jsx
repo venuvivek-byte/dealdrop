@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Retailer from './pages/Retailer';
 import Leaderboard from './pages/Leaderboard';
 import './index.css';
+import './mobile.css';
 
 export default function App() {
   const [user, setUser] = useState(null);

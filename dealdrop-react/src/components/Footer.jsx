@@ -14,10 +14,9 @@ export default function Footer() {
         <div className="footer-column">
           <h4>Product</h4>
           <ul>
-            <li><a href="#">Browse Deals</a></li>
-            <li><a href="#">Map View</a></li>
-            <li><a href="#">Categories</a></li>
-            <li><a href="#">Trending</a></li>
+            <li><a href="/#live-deals">Browse Deals</a></li>
+            <li><a href="/#map-view">Map View</a></li>
+            <li><Link to="/leaderboard">Trending</Link></li>
           </ul>
         </div>
         
@@ -26,18 +25,15 @@ export default function Footer() {
           <ul>
             <li><Link to="/retailer">Post a Deal</Link></li>
             <li><Link to="/retailer">Dashboard</Link></li>
-            <li><a href="#">Analytics</a></li>
-            <li><a href="#">Pricing</a></li>
+            <li><Link to="/retailer">Analytics</Link></li>
           </ul>
         </div>
         
         <div className="footer-column">
-          <h4>Company</h4>
+          <h4>Project</h4>
           <ul>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Blog</a></li>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">Privacy</a></li>
+            <li><a href="https://github.com/venuvivek-byte/dealdrop" target="_blank" rel="noreferrer">Source Code</a></li>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); alert('DealDrop is a hyper-local flash sales platform built for Vashisht Hackathon 3.0'); }}>About</a></li>
           </ul>
         </div>
       </div>
